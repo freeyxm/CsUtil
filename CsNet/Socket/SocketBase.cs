@@ -5,7 +5,7 @@ using System.Net.Sockets;
 
 namespace CsNet
 {
-    public abstract class SocketBase
+    public class SocketBase
     {
         public delegate void FCallback(FResult ret, int code, string msg);
 
@@ -15,11 +15,14 @@ namespace CsNet
         protected int m_errorCode;
         protected string m_errorMsg;
 
-        protected SocketBase(AddressFamily af, SocketType st, ProtocolType pt)
+        public SocketBase(AddressFamily af, SocketType st, ProtocolType pt)
         {
-            m_socket = new Socket(af, st, pt);
-            m_errorCode = 0;
-            m_errorMsg = null;
+            Init(new Socket(af, st, pt));
+        }
+
+        public SocketBase(Socket socket)
+        {
+            Init(socket);
         }
 
         private SocketBase()
@@ -30,6 +33,13 @@ namespace CsNet
         {
             Close();
             m_socket.Dispose();
+        }
+
+        private void Init(Socket socket)
+        {
+            m_socket = socket;
+            m_errorCode = 0;
+            m_errorMsg = null;
         }
 
         public virtual FResult Bind(EndPoint ep)

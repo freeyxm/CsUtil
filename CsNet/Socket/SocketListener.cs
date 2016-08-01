@@ -12,7 +12,7 @@ namespace CsNet
             get
             {
                 if (m_instance == null)
-                    m_instance = new SocketListener(1);
+                    m_instance = new SocketListener(1, 10000);
                 return m_instance;
             }
         }
@@ -30,8 +30,9 @@ namespace CsNet
         private List<Socket> m_checkRead;
         private List<Socket> m_checkWrite;
         private List<Socket> m_checkError;
+        private int m_timeout;
 
-        public SocketListener(int capacity)
+        public SocketListener(int capacity, int timeout)
         {
             m_readSocks = new Dictionary<Socket, SocketHandler>();
             m_writeSocks = new Dictionary<Socket, SocketHandler>();
@@ -39,6 +40,7 @@ namespace CsNet
             m_checkRead = new List<Socket>(capacity);
             m_checkWrite = new List<Socket>(capacity);
             m_checkError = new List<Socket>(capacity);
+            m_timeout = timeout;
         }
 
         public void Register(SocketHandler h, CheckFlag flag)
@@ -102,64 +104,63 @@ namespace CsNet
         {
             while (true)
             {
-                m_checkRead.Clear();
-                lock (m_readSocks)
-                {
-                    m_checkRead.AddRange(m_readSocks.Keys);
-                }
-                m_checkWrite.Clear();
-                lock (m_writeSocks)
-                {
-                    m_checkWrite.AddRange(m_writeSocks.Keys);
-                }
-                m_checkError.Clear();
-                lock (m_errorSocks)
-                {
-                    m_checkError.AddRange(m_errorSocks.Keys);
-                }
+                ResetCheckList(ref m_checkRead, m_readSocks);
+                ResetCheckList(ref m_checkWrite, m_writeSocks);
+                ResetCheckList(ref m_checkError, m_errorSocks);
 
-                Socket.Select(m_checkRead, m_checkWrite, m_checkError, 10000);
-
-                if (m_checkRead.Count > 0)
+                if (m_checkRead.Count > 0 || m_checkWrite.Count > 0 || m_checkError.Count > 0)
                 {
-                    lock (m_readSocks)
+                    try
                     {
-                        for (int i = 0; i < m_checkRead.Count; ++i)
-                        {
-                            var s = m_checkRead[i];
-                            if (m_readSocks.ContainsKey(s))
-                                m_readSocks[s].OnSocketReadReady();
-                        }
+                        Socket.Select(m_checkRead, m_checkWrite, m_checkError, m_timeout);
+
+                        ExecuteCheckList(m_checkRead, m_readSocks, CheckFlag.Read);
+                        ExecuteCheckList(m_checkWrite, m_writeSocks, CheckFlag.Write);
+                        ExecuteCheckList(m_checkError, m_errorSocks, CheckFlag.Error);
+                    }
+                    catch (Exception e)
+                    {
                     }
                 }
-                if (m_checkWrite.Count > 0)
+                else
                 {
-                    lock (m_writeSocks)
-                    {
-                        for (int i = 0; i < m_checkWrite.Count; ++i)
-                        {
-                            var s = m_checkWrite[i];
-
-
-                            if (m_writeSocks.ContainsKey(s))
-                                m_writeSocks[s].OnSocketWriteReady();
-
-                        }
-                    }
-                }
-                if (m_checkError.Count > 0)
-                {
-                    lock (m_errorSocks)
-                    {
-                        for (int i = 0; i < m_checkError.Count; ++i)
-                        {
-                            var s = m_checkError[i];
-                            if (m_errorSocks.ContainsKey(s))
-                                m_errorSocks[s].OnSocketError();
-                        }
-                    }
+                    System.Threading.Thread.Sleep(m_timeout / 1000);
                 }
             } // end while
+        }
+
+        void ResetCheckList(ref List<Socket> checkList, Dictionary<Socket, SocketHandler> source)
+        {
+            checkList.Clear();
+            lock (source)
+            {
+                checkList.AddRange(source.Keys);
+            }
+        }
+
+        void ExecuteCheckList(List<Socket> checkList, Dictionary<Socket, SocketHandler> source, CheckFlag flag)
+        {
+            if (checkList.Count > 0)
+            {
+                lock (source)
+                {
+                    for (int i = 0; i < checkList.Count; ++i)
+                    {
+                        var s = checkList[i];
+                        if (source.ContainsKey(s))
+                        {
+                            if ((flag & CheckFlag.Read) != 0)
+                                source[s].OnSocketReadReady();
+
+                            if ((flag & CheckFlag.Write) != 0)
+                                source[s].OnSocketWriteReady();
+
+                            if ((flag & CheckFlag.Error) != 0)
+                                source[s].OnSocketError();
+                        }
+                    }
+                }
+            }
         }
     }
 }

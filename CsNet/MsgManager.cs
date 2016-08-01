@@ -8,10 +8,16 @@ namespace CsNet
     public class MsgManager : SocketHandler
     {
         [StructLayoutAttribute(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-        struct Header
+        class Header
         {
-            public byte sign;
+            public short sign;
             public int totalSize;
+        }
+        class Msg
+        {
+            public byte[] data;
+            public Action onFinished;
+            public Action onError;
         }
 
         public const int MAX_MSG_SIZE = 10 * 1024;
@@ -19,8 +25,8 @@ namespace CsNet
 
         private SocketBase m_socket;
 
-        private Queue<byte[]> m_sendQueue;
-        private byte[] m_sendBuffer;
+        private Queue<Msg> m_sendQueue;
+        private Msg m_sendMsg;
         private int m_sendLength;
 
         private Header m_recvHeader;
@@ -28,22 +34,21 @@ namespace CsNet
         private int m_recvLength;
         private int m_headerSize;
 
+        private Action<MsgManager, byte[]> m_onRecvedData;
+        private Action<MsgManager> m_onSocketError;
+
         public MsgManager(SocketBase socket)
         {
             m_socket = socket;
             m_socket.GetSocket().Blocking = false;
 
-            m_sendQueue = new Queue<byte[]>();
+            m_sendQueue = new Queue<Msg>();
             m_sendLength = 0;
 
             m_recvHeader = new Header();
             m_recvBuffer = new byte[MAX_MSG_SIZE];
             m_recvLength = 0;
             m_headerSize = Marshal.SizeOf(m_recvHeader);
-
-            SocketListener.Instance.Register(this,
-                SocketListener.CheckFlag.Read |
-                SocketListener.CheckFlag.Error);
         }
 
         private MsgManager()
@@ -55,12 +60,26 @@ namespace CsNet
             UnRegister();
         }
 
-        public void SendMsg(byte[] data)
+        public void SetOnRecvedData(Action<MsgManager, byte[]> cb)
         {
-            byte[] bytes = PackMsg(data, 0, data.Length);
+            m_onRecvedData = cb;
+        }
+
+        public void SetOnSocketError(Action<MsgManager> cb)
+        {
+            m_onSocketError = cb;
+        }
+
+        public void SendMsg(byte[] data, Action onFinished, Action onError)
+        {
+            Msg msg = new Msg();
+            msg.data = PackMsg(data, 0, data.Length);
+            msg.onFinished = onFinished;
+            msg.onError = onError;
+
             lock (m_sendQueue)
             {
-                m_sendQueue.Enqueue(bytes);
+                m_sendQueue.Enqueue(msg);
                 if (m_sendQueue.Count == 1)
                 {
                     SocketListener.Instance.Register(this, SocketListener.CheckFlag.Write);
@@ -72,7 +91,7 @@ namespace CsNet
         {
             byte[] data = new byte[size];
             Array.Copy(buffer, offset, data, 0, size);
-            // data ...
+            m_onRecvedData(this, data);
         }
 
         public override Socket GetSocket()
@@ -82,43 +101,43 @@ namespace CsNet
 
         public override void OnSocketWriteReady()
         {
-            bool bSend = true;
-            if (m_sendBuffer != null && m_sendLength < m_sendBuffer.Length)
+            var ret = FResult.Success;
+            if (m_sendMsg != null && m_sendLength < m_sendMsg.data.Length)
             {
-                bSend = SendBuffer();
+                ret = SendBuffer();
             }
-            while (bSend && m_sendQueue.Count > 0)
+            while (ret == FResult.Success && m_sendQueue.Count > 0)
             {
-                m_sendBuffer = m_sendQueue.Dequeue();
+                m_sendMsg = m_sendQueue.Dequeue();
                 m_sendLength = 0;
-                bSend = SendBuffer();
+                ret = SendBuffer();
             }
-            if (bSend)
+            if (ret != FResult.WouldBlock)
             {
+                SocketListener.Instance.UnRegister(this, SocketListener.CheckFlag.Write);
             }
         }
 
-        bool SendBuffer()
+        FResult SendBuffer()
         {
-            int size = m_sendBuffer.Length - m_sendLength;
-            var result = m_socket.Send(m_sendBuffer, m_sendLength, size);
-            if (result == FResult.Success)
+            int size = m_sendMsg.data.Length - m_sendLength;
+            var ret = m_socket.Send(m_sendMsg.data, m_sendLength, size);
+            if (ret == FResult.Success)
             {
-                m_sendLength += size;
-                m_sendBuffer = null;
-                m_sendLength = 0;
-                return true;
+                m_sendMsg.onFinished?.Invoke();
+                ResetSendBuffer();
             }
-            else if (result == FResult.WouldBlock)
+            else if (ret == FResult.WouldBlock)
             {
                 m_sendLength += m_socket.SendLength;
-                return false;
             }
             else
             {
+                m_sendMsg.onError?.Invoke();
+                ResetSendBuffer();
                 OnSocketError();
-                return false;
             }
+            return ret;
         }
 
         public override void OnSocketReadReady()
@@ -135,7 +154,7 @@ namespace CsNet
                         m_recvLength += size;
                         if (m_recvLength >= m_headerSize)
                         {
-                            Util.BytesToStuct(m_recvBuffer, 0, ref m_recvHeader);
+                            Util.BytesToStruct(m_recvBuffer, 0, m_recvHeader);
                             if (m_recvHeader.sign != HEADER_SIGN)
                             {
                                 ResetRecvBuffer();
@@ -173,11 +192,17 @@ namespace CsNet
         public override void OnSocketError()
         {
             UnRegister();
-            m_socket.Close();
-            // ...
+            m_onSocketError(this);
         }
 
-        void UnRegister()
+        public void Register()
+        {
+            SocketListener.Instance.Register(this,
+                SocketListener.CheckFlag.Read |
+                SocketListener.CheckFlag.Error);
+        }
+
+        public void UnRegister()
         {
             SocketListener.Instance.UnRegister(this,
                 SocketListener.CheckFlag.Read |
@@ -187,17 +212,21 @@ namespace CsNet
 
         byte[] PackMsg(byte[] data, int offset, int size)
         {
-            Header header;
+            Header header = new Header();
             header.sign = HEADER_SIGN;
             header.totalSize = m_headerSize + size;
 
-            int headerSize = m_headerSize;
-            byte[] buffer = new byte[headerSize + size];
-
+            byte[] buffer = new byte[m_headerSize + size];
             Util.StructToBytes(header, ref buffer, 0);
-            Array.Copy(data, offset, buffer, headerSize, size);
+            Array.Copy(data, offset, buffer, m_headerSize, size);
 
             return buffer;
+        }
+
+        void ResetSendBuffer()
+        {
+            m_sendMsg = null;
+            m_sendLength = 0;
         }
 
         void ResetRecvBuffer()

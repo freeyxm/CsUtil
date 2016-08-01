@@ -60,7 +60,7 @@ namespace CsNet
         /// <param name="bytes">byte数组</param>
         /// <param name="type">结构体类型</param>
         /// <returns>转换后的结构体</returns>
-        public static object BytesToStuct(byte[] bytes, Type type)
+        public static object BytesToStruct(byte[] bytes, Type type)
         {
             //得到结构体的大小
             int size = Marshal.SizeOf(type);
@@ -87,7 +87,7 @@ namespace CsNet
         /// <param name="offset"></param>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public static bool BytesToStuct<T>(byte[] bytes, int offset, ref T obj)
+        public static bool BytesToStruct<T>(byte[] bytes, int offset, T obj)
         {
             //得到结构体的大小
             int size = Marshal.SizeOf(typeof(T));
