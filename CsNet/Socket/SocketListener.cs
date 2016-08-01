@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Net.Sockets;
 
-namespace FNet
+namespace CsNet
 {
     class SocketListener
     {

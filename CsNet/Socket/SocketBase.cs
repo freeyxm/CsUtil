@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 
-namespace FNet
+namespace CsNet
 {
     abstract class SocketBase
     {
@@ -30,6 +30,42 @@ namespace FNet
         {
             Close();
             m_socket.Dispose();
+        }
+
+        public virtual FResult Bind(EndPoint ep)
+        {
+            return DoAction(() =>
+            {
+                m_socket.Bind(ep);
+            });
+        }
+
+        public virtual FResult Listen(int backlog)
+        {
+            return DoAction(() =>
+            {
+                m_socket.Listen(backlog);
+            });
+        }
+
+        public virtual Socket Accept()
+        {
+            try
+            {
+                return m_socket.Accept();
+            }
+            catch (SocketException e)
+            {
+                m_errorCode = e.ErrorCode;
+                m_errorMsg = e.Message;
+                return null;
+            }
+            catch (Exception e)
+            {
+                m_errorCode = (int)FResult.Exception;
+                m_errorMsg = e.Message;
+                return null;
+            }
         }
 
         public virtual FResult Connect(EndPoint ep)

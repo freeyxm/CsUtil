@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace FNet
+namespace CsNet
 {
     class Util
     {

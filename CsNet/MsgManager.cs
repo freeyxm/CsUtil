@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 
-namespace FNet
+namespace CsNet
 {
     class MsgManager : SocketHandler
     {
@@ -52,10 +52,7 @@ namespace FNet
 
         ~MsgManager()
         {
-            SocketListener.Instance.UnRegister(this,
-                SocketListener.CheckFlag.Read |
-                SocketListener.CheckFlag.Write |
-                SocketListener.CheckFlag.Error);
+            UnRegister();
         }
 
         public void SendMsg(byte[] data)
@@ -175,7 +172,17 @@ namespace FNet
 
         public override void OnSocketError()
         {
-            throw new NotImplementedException();
+            UnRegister();
+            m_socket.Close();
+            // ...
+        }
+
+        void UnRegister()
+        {
+            SocketListener.Instance.UnRegister(this,
+                SocketListener.CheckFlag.Read |
+                SocketListener.CheckFlag.Write |
+                SocketListener.CheckFlag.Error);
         }
 
         byte[] PackMsg(byte[] data, int offset, int size)
