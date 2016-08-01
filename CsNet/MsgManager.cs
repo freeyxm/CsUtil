@@ -41,8 +41,9 @@ namespace FNet
             m_recvLength = 0;
             m_headerSize = Marshal.SizeOf(m_recvHeader);
 
-            SocketListener.Instance.Register(this, SocketListener.CheckFlag.Read);
-            SocketListener.Instance.Register(this, SocketListener.CheckFlag.Error);
+            SocketListener.Instance.Register(this,
+                SocketListener.CheckFlag.Read |
+                SocketListener.CheckFlag.Error);
         }
 
         private MsgManager()
@@ -52,12 +53,12 @@ namespace FNet
         ~MsgManager()
         {
             SocketListener.Instance.UnRegister(this,
-                SocketListener.CheckFlag.Write
-                | SocketListener.CheckFlag.Read
-                | SocketListener.CheckFlag.Error);
+                SocketListener.CheckFlag.Read |
+                SocketListener.CheckFlag.Write |
+                SocketListener.CheckFlag.Error);
         }
 
-        public void SendData(byte[] data)
+        public void SendMsg(byte[] data)
         {
             byte[] bytes = PackMsg(data, 0, data.Length);
             lock (m_sendQueue)
@@ -68,6 +69,13 @@ namespace FNet
                     SocketListener.Instance.Register(this, SocketListener.CheckFlag.Write);
                 }
             }
+        }
+
+        public void OnRecvMsg(byte[] buffer, int offset, int size)
+        {
+            byte[] data = new byte[size];
+            Array.Copy(buffer, offset, data, 0, size);
+            // data ...
         }
 
         public override Socket GetSocket()
@@ -152,7 +160,7 @@ namespace FNet
                         m_recvLength += size;
                         if (m_recvLength >= m_recvHeader.totalSize)
                         {
-                            OnRecvData(m_recvBuffer, m_headerSize, m_recvHeader.totalSize - m_headerSize);
+                            OnRecvMsg(m_recvBuffer, m_headerSize, m_recvHeader.totalSize - m_headerSize);
                             ResetRecvBuffer();
                         }
                     }
@@ -168,12 +176,6 @@ namespace FNet
         public override void OnSocketError()
         {
             throw new NotImplementedException();
-        }
-
-        public void OnRecvData(byte[] buffer, int offset, int size)
-        {
-            byte[] data = new byte[size];
-            Array.Copy(buffer, offset, data, 0, size);
         }
 
         byte[] PackMsg(byte[] data, int offset, int size)

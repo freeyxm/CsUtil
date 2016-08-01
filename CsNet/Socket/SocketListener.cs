@@ -47,18 +47,27 @@ namespace FNet
 
             if ((flag & CheckFlag.Read) != 0)
             {
-                if (!m_readSocks.ContainsKey(socket))
-                    m_readSocks.Add(socket, h);
+                lock (m_readSocks)
+                {
+                    if (!m_readSocks.ContainsKey(socket))
+                        m_readSocks.Add(socket, h);
+                }
             }
             if ((flag & CheckFlag.Write) != 0)
             {
-                if (!m_writeSocks.ContainsKey(socket))
-                    m_writeSocks.Add(socket, h);
+                lock (m_writeSocks)
+                {
+                    if (!m_writeSocks.ContainsKey(socket))
+                        m_writeSocks.Add(socket, h);
+                }
             }
             if ((flag & CheckFlag.Error) != 0)
             {
-                if (!m_errorSocks.ContainsKey(socket))
-                    m_errorSocks.Add(socket, h);
+                lock (m_errorSocks)
+                {
+                    if (!m_errorSocks.ContainsKey(socket))
+                        m_errorSocks.Add(socket, h);
+                }
             }
         }
 
@@ -68,15 +77,24 @@ namespace FNet
 
             if ((flag & CheckFlag.Read) != 0)
             {
-                m_readSocks.Remove(socket);
+                lock (m_readSocks)
+                {
+                    m_readSocks.Remove(socket);
+                }
             }
             if ((flag & CheckFlag.Write) != 0)
             {
-                m_writeSocks.Remove(socket);
+                lock (m_writeSocks)
+                {
+                    m_writeSocks.Remove(socket);
+                }
             }
             if ((flag & CheckFlag.Error) != 0)
             {
-                m_errorSocks.Remove(socket);
+                lock (m_errorSocks)
+                {
+                    m_errorSocks.Remove(socket);
+                }
             }
         }
 
@@ -104,32 +122,44 @@ namespace FNet
 
                 if (m_checkRead.Count > 0)
                 {
-                    for (int i = 0; i < m_checkRead.Count; ++i)
+                    lock (m_readSocks)
                     {
-                        var s = m_checkRead[i];
-                        if (m_readSocks.ContainsKey(s))
-                            m_readSocks[s].OnSocketReadReady();
+                        for (int i = 0; i < m_checkRead.Count; ++i)
+                        {
+                            var s = m_checkRead[i];
+                            if (m_readSocks.ContainsKey(s))
+                                m_readSocks[s].OnSocketReadReady();
+                        }
                     }
                 }
                 if (m_checkWrite.Count > 0)
                 {
-                    for (int i = 0; i < m_checkWrite.Count; ++i)
+                    lock (m_writeSocks)
                     {
-                        var s = m_checkWrite[i];
-                        if (m_writeSocks.ContainsKey(s))
-                            m_writeSocks[s].OnSocketWriteReady();
+                        for (int i = 0; i < m_checkWrite.Count; ++i)
+                        {
+                            var s = m_checkWrite[i];
+
+
+                            if (m_writeSocks.ContainsKey(s))
+                                m_writeSocks[s].OnSocketWriteReady();
+
+                        }
                     }
                 }
                 if (m_checkError.Count > 0)
                 {
-                    for (int i = 0; i < m_checkError.Count; ++i)
+                    lock (m_errorSocks)
                     {
-                        var s = m_checkError[i];
-                        if (m_errorSocks.ContainsKey(s))
-                            m_errorSocks[s].OnSocketError();
+                        for (int i = 0; i < m_checkError.Count; ++i)
+                        {
+                            var s = m_checkError[i];
+                            if (m_errorSocks.ContainsKey(s))
+                                m_errorSocks[s].OnSocketError();
+                        }
                     }
                 }
-            }
+            } // end while
         }
     }
 }
