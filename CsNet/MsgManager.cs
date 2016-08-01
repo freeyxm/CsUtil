@@ -142,8 +142,15 @@ namespace CsNet
 
         public override void OnSocketReadReady()
         {
-            int size = 0;
-            while ((size = m_socket.GetSocket().Available) > 0)
+            int size = m_socket.GetSocket().Available;
+            if (size == 0) // remote socket closed.
+            {
+                UnRegister();
+                OnSocketError();
+                return;
+            }
+
+            while (size > 0)
             {
                 if (m_recvLength < m_headerSize)
                 {
@@ -186,6 +193,7 @@ namespace CsNet
                         break;
                     }
                 }
+                size = m_socket.GetSocket().Available;
             }
         }
 
