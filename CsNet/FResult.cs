@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CsNet
 {
-    enum FResult
+    public enum FResult
     {
         Exception = -2,
         Error = -1,

@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace CsNet
 {
-    class MsgManager : SocketHandler
+    public class MsgManager : SocketHandler
     {
         [StructLayoutAttribute(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
         struct Header

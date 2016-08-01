@@ -3,7 +3,7 @@ using System.Net.Sockets;
 
 namespace CsNet
 {
-    abstract class SocketHandler
+    public abstract class SocketHandler
     {
         public abstract Socket GetSocket();
         public abstract void OnSocketReadReady();

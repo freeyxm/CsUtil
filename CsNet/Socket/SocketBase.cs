@@ -5,7 +5,7 @@ using System.Net.Sockets;
 
 namespace CsNet
 {
-    abstract class SocketBase
+    public abstract class SocketBase
     {
         public delegate void FCallback(FResult ret, int code, string msg);
 

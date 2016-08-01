@@ -4,7 +4,7 @@ using System.Net.Sockets;
 
 namespace CsNet
 {
-    class SocketListener
+    public class SocketListener
     {
         private static SocketListener m_instance;
         public static SocketListener Instance
