@@ -22,6 +22,9 @@ namespace CsNet
             Read = 0x01 << 0,
             Write = 0x01 << 1,
             Error = 0x01 << 2,
+
+            RW = Read | Write,
+            All = Read | Write | Error,
         }
 
         private Dictionary<Socket, SocketHandler> m_readSocks;
@@ -149,14 +152,19 @@ namespace CsNet
                         var s = checkList[i];
                         if (source.ContainsKey(s))
                         {
+                            var h = source[s];
+
                             if ((flag & CheckFlag.Read) != 0)
-                                source[s].OnSocketReadReady();
+                                h.OnSocketReadReady();
 
                             if ((flag & CheckFlag.Write) != 0)
-                                source[s].OnSocketWriteReady();
+                                h.OnSocketWriteReady();
 
                             if ((flag & CheckFlag.Error) != 0)
-                                source[s].OnSocketError();
+                            {
+                                UnRegister(h, CheckFlag.All);
+                                h.OnSocketError();
+                            }
                         }
                     }
                 }

@@ -205,17 +205,12 @@ namespace CsNet
 
         public void Register()
         {
-            SocketListener.Instance.Register(this,
-                SocketListener.CheckFlag.Read |
-                SocketListener.CheckFlag.Error);
+            SocketListener.Instance.Register(this, SocketListener.CheckFlag.Read | SocketListener.CheckFlag.Error);
         }
 
         public void UnRegister()
         {
-            SocketListener.Instance.UnRegister(this,
-                SocketListener.CheckFlag.Read |
-                SocketListener.CheckFlag.Write |
-                SocketListener.CheckFlag.Error);
+            SocketListener.Instance.UnRegister(this, SocketListener.CheckFlag.All);
         }
 
         byte[] PackMsg(byte[] data, int offset, int size)
