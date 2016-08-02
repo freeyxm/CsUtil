@@ -12,8 +12,12 @@ namespace CsNet
         protected delegate FResult FAction(ref int errorCode, ref string errorMsg, out SocketError socketError);
 
         protected Socket m_socket;
+        protected FResult m_state;
         protected int m_errorCode;
         protected string m_errorMsg;
+
+        protected int m_realSend;
+        protected int m_realRecv;
 
         public SocketBase(AddressFamily af, SocketType st, ProtocolType pt)
         {
@@ -38,8 +42,11 @@ namespace CsNet
         private void Init(Socket socket)
         {
             m_socket = socket;
+            m_state = FResult.Success;
             m_errorCode = 0;
             m_errorMsg = null;
+            m_realSend = 0;
+            m_realRecv = 0;
         }
 
         public virtual FResult Bind(EndPoint ep)
@@ -60,22 +67,10 @@ namespace CsNet
 
         public virtual Socket Accept()
         {
-            try
+            return DoAction(() =>
             {
                 return m_socket.Accept();
-            }
-            catch (SocketException e)
-            {
-                m_errorCode = e.ErrorCode;
-                m_errorMsg = e.Message;
-                return null;
-            }
-            catch (Exception e)
-            {
-                m_errorCode = (int)FResult.Exception;
-                m_errorMsg = e.Message;
-                return null;
-            }
+            });
         }
 
         public virtual FResult Connect(EndPoint ep)
@@ -83,6 +78,14 @@ namespace CsNet
             return DoAction(() =>
             {
                 m_socket.Connect(ep);
+            });
+        }
+
+        public virtual FResult Disconnect(bool reuseSocket)
+        {
+            return DoAction(() =>
+            {
+                m_socket.Disconnect(reuseSocket);
             });
         }
 
@@ -97,10 +100,11 @@ namespace CsNet
                     int nsend = m_socket.Send(buffer, offset, size, SocketFlags.None, out socketError);
                     if (socketError == SocketError.Success)
                     {
-                        if (nsend != size)
+                        if (nsend < size)
                         {
+                            m_realSend = nsend;
                             ret = FResult.WouldBlock;
-                            errorCode = nsend;
+                            errorCode = 0;
                             errorMsg = "";
                         }
                     }
@@ -109,6 +113,7 @@ namespace CsNet
                 {
                     if (e.ErrorCode == (int)SocketError.WouldBlock)
                     {
+                        m_realSend = 0;
                         ret = FResult.WouldBlock;
                         errorCode = 0;
                         errorMsg = "";
@@ -136,13 +141,14 @@ namespace CsNet
                         if (nrecv == 0)
                         {
                             ret = FResult.SocketClosed;
-                            m_errorCode = (int)FResult.Error;
-                            m_errorMsg = "";
+                            errorCode = (int)FResult.SocketClosed;
+                            errorMsg = "";
                         }
-                        else if (nrecv != size)
+                        else if (nrecv < size)
                         {
+                            m_realRecv = nrecv;
                             ret = FResult.WouldBlock;
-                            errorCode = nrecv;
+                            errorCode = 0;
                             errorMsg = "";
                         }
                     }
@@ -151,6 +157,7 @@ namespace CsNet
                 {
                     if (e.ErrorCode == (int)SocketError.WouldBlock)
                     {
+                        m_realRecv = 0;
                         ret = FResult.WouldBlock;
                         errorCode = 0;
                         errorMsg = "";
@@ -192,10 +199,11 @@ namespace CsNet
                     int nsend = socket.EndSend(ar, out socketError);
                     if (socketError == SocketError.Success)
                     {
-                        if (nsend != size)
+                        if (nsend < size)
                         {
+                            m_realSend = nsend;
                             ret = FResult.WouldBlock;
-                            errorCode = nsend;
+                            errorCode = 0;
                             errorMsg = "";
                         }
                     }
@@ -221,10 +229,11 @@ namespace CsNet
                     int nrecv = socket.EndReceive(ar, out socketError);
                     if (socketError == SocketError.Success)
                     {
-                        if (nrecv != size)
+                        if (nrecv < size)
                         {
+                            m_realRecv = nrecv;
                             ret = FResult.WouldBlock;
-                            errorCode = nrecv;
+                            errorCode = 0;
                             errorMsg = "";
                         }
                     }
@@ -239,6 +248,14 @@ namespace CsNet
             });
         }
 
+        public virtual FResult Shutdown(SocketShutdown how)
+        {
+            return DoAction(() =>
+            {
+                m_socket.Shutdown(how);
+            });
+        }
+
         public virtual FResult Close()
         {
             return DoAction(() =>
@@ -250,53 +267,78 @@ namespace CsNet
 
         protected FResult DoAction(System.Action action)
         {
-            FResult ret = FResult.Success;
+            m_state = FResult.Success;
             try
             {
                 action();
             }
             catch (SocketException e)
             {
-                ret = FResult.SocketException;
+                m_state = FResult.SocketException;
                 m_errorCode = e.ErrorCode;
                 m_errorMsg = e.Message;
             }
             catch (Exception e)
             {
-                ret = FResult.Exception;
+                m_state = FResult.Exception;
                 m_errorCode = (int)FResult.Exception;
                 m_errorMsg = e.Message;
             }
-            return ret;
+            return m_state;
+        }
+
+        protected T DoAction<T>(System.Func<T> action)
+        {
+            T result;
+            m_state = FResult.Success;
+            try
+            {
+                result = action();
+            }
+            catch (SocketException e)
+            {
+                m_state = FResult.SocketException;
+                m_errorCode = e.ErrorCode;
+                m_errorMsg = e.Message;
+                result = default(T);
+            }
+            catch (Exception e)
+            {
+                m_state = FResult.Exception;
+                m_errorCode = (int)FResult.Exception;
+                m_errorMsg = e.Message;
+                result = default(T);
+            }
+            return result;
         }
 
         protected FResult DoAction(FAction action)
         {
-            FResult ret = FResult.Success;
+            m_state = FResult.Success;
             try
             {
                 SocketError socketError;
-                ret = action(ref m_errorCode, ref m_errorMsg, out socketError);
+                m_state = action(ref m_errorCode, ref m_errorMsg, out socketError);
                 if (socketError != SocketError.Success)
                 {
-                    ret = FResult.SocketError;
+                    m_state = FResult.SocketError;
                     m_errorCode = (int)socketError;
                     m_errorMsg = "";
                 }
             }
             catch (SocketException e)
             {
-                ret = FResult.SocketException;
+                m_state = FResult.SocketException;
                 m_errorCode = e.ErrorCode;
                 m_errorMsg = e.Message;
             }
             catch (Exception e)
             {
-                ret = FResult.Exception;
+                m_state = FResult.Exception;
                 m_errorCode = (int)FResult.Exception;
                 m_errorMsg = e.Message;
             }
-            return ret;
+            return m_state;
         }
 
         protected void DoAction(System.Action action, FCallback callback)
@@ -362,10 +404,11 @@ namespace CsNet
 
         public Socket GetSocket() { return m_socket; }
 
+        public FResult State { get { return m_state; } }
         public int ErrorCode { get { return m_errorCode; } }
         public string ErrorMsg { get { return m_errorMsg; } }
 
-        public int SendLength { get { return m_errorCode; } }
-        public int RecvLength { get { return m_errorCode; } }
+        public int RealSend { get { return m_realSend; } }
+        public int RealRecv { get { return m_realRecv; } }
     }
 }

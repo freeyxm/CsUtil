@@ -35,6 +35,11 @@ namespace CsNet
         private List<Socket> m_checkError;
         private int m_timeout;
 
+        /// <summary>
+        /// Listening Socket state.
+        /// </summary>
+        /// <param name="capacity">init capacity</param>
+        /// <param name="timeout">Select timeout (microsecond).</param>
         public SocketListener(int capacity, int timeout)
         {
             m_readSocks = new Dictionary<Socket, SocketHandler>();
@@ -168,8 +173,8 @@ namespace CsNet
                             }
                         }
                     }
-                }
+                } // end lock
             }
-        }
+        } // end ExecuteCheckList
     }
 }

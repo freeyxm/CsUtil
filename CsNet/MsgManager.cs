@@ -129,7 +129,7 @@ namespace CsNet
             }
             else if (ret == FResult.WouldBlock)
             {
-                m_sendLength += m_socket.SendLength;
+                m_sendLength += m_socket.RealSend;
             }
             else
             {
@@ -155,8 +155,8 @@ namespace CsNet
                 if (m_recvLength < m_headerSize)
                 {
                     size = Math.Min(size, m_headerSize - m_recvLength);
-                    var result = m_socket.Recv(m_recvBuffer, m_recvLength, size);
-                    if (result == FResult.Success)
+                    var ret = m_socket.Recv(m_recvBuffer, m_recvLength, size);
+                    if (ret == FResult.Success)
                     {
                         m_recvLength += size;
                         if (m_recvLength >= m_headerSize)
@@ -168,6 +168,10 @@ namespace CsNet
                             }
                         }
                     }
+                    else if (ret == FResult.WouldBlock)
+                    {
+                        m_recvLength += m_socket.RealRecv;
+                    }
                     else
                     {
                         OnSocketError();
@@ -177,8 +181,8 @@ namespace CsNet
                 else
                 {
                     size = Math.Min(size, m_recvHeader.totalSize - m_headerSize);
-                    var result = m_socket.Recv(m_recvBuffer, m_recvLength, size);
-                    if (result == FResult.Success)
+                    var ret = m_socket.Recv(m_recvBuffer, m_recvLength, size);
+                    if (ret == FResult.Success)
                     {
                         m_recvLength += size;
                         if (m_recvLength >= m_recvHeader.totalSize)
@@ -186,6 +190,10 @@ namespace CsNet
                             OnRecvMsg(m_recvBuffer, m_headerSize, m_recvHeader.totalSize - m_headerSize);
                             ResetRecvBuffer();
                         }
+                    }
+                    else if (ret == FResult.WouldBlock)
+                    {
+                        m_recvLength += m_socket.RealRecv;
                     }
                     else
                     {
