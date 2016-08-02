@@ -18,16 +18,16 @@ namespace CsNetClient
             m_socket = new SocketTcp(AddressFamily.InterNetwork);
         }
 
-        public void Start(EndPoint ep)
+        public void Start(EndPoint ep, int sleep)
         {
             var ret = m_socket.Connect(ep);
             if (ret != FResult.Success)
+            {
+                Logger.Error("Connect error: {0}", m_socket.ErrorMsg);
                 return;
+            }
 
-            Thread listner = new Thread(new ThreadStart(SocketListener.Instance.Run));
-            listner.Start();
-
-            string msg = "hi server!";
+            string msg = "Hi server!";
             byte[] bytes = Encoding.UTF8.GetBytes(msg);
 
             m_bRun = true;
@@ -47,8 +47,10 @@ namespace CsNetClient
                     Logger.Debug("Send error.");
                 });
 
-                Console.ReadLine();
-                //Thread.Sleep(10);
+                if (sleep > 0)
+                    Thread.Sleep(sleep);
+                else
+                    Console.ReadLine();
             }
         }
 

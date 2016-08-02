@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
+using CsNet;
 
 namespace CsNetServer
 {
@@ -8,6 +8,8 @@ namespace CsNetServer
     {
         static void Main(string[] args)
         {
+            Logger.LogLevel = Logger.Level.Info;
+
             IPEndPoint ep = new IPEndPoint(0, 2016);
             Server server = new Server();
             server.Start(ep);

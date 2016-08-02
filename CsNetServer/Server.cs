@@ -12,11 +12,13 @@ namespace CsNetServer
     {
         private SocketBase m_socket;
         private List<MsgManager> m_clients;
+        private int m_requestCount;
 
         public Server()
         {
             m_socket = new SocketTcp(AddressFamily.InterNetwork);
             m_clients = new List<MsgManager>();
+            m_requestCount = 0;
         }
 
         public void Start(EndPoint ep)
@@ -50,12 +52,15 @@ namespace CsNetServer
                     mgr.SetOnSocketError(OnSocketError);
                     mgr.Register();
                     m_clients.Add(mgr);
+                    Logger.Info("Client ON, count: {0}", m_clients.Count);
                 }
             }
         }
 
         void OnRecvedData(MsgManager mgr, byte[] data)
         {
+            Logger.Info("Request count: {0}", ++m_requestCount);
+
             string msg = Encoding.UTF8.GetString(data);
             string addr = mgr.GetSocket().RemoteEndPoint.ToString();
             Logger.Debug("Recv msg: {0}, addr: {1}", msg, addr);
@@ -76,6 +81,7 @@ namespace CsNetServer
         void Close(MsgManager mgr)
         {
             m_clients.Remove(mgr);
+            Logger.Info("Client OFF, count: {0}", m_clients.Count);
         }
     }
 }

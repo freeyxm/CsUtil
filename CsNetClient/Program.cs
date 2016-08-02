@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
+using System.Threading;
+using CsNet;
 
 namespace CsNetClient
 {
@@ -7,11 +10,33 @@ namespace CsNetClient
     {
         static void Main(string[] args)
         {
+            Logger.LogLevel = Logger.Level.Info;
+
             IPAddress addr = IPAddress.Parse("127.0.0.1");
             IPEndPoint ep = new IPEndPoint(addr, 2016);
 
-            Client client = new Client();
-            client.Start(ep);
+            List<Client> clients = new List<Client>();
+            List<Thread> threads = new List<Thread>();
+
+            Thread listner = new Thread(new ThreadStart(SocketListener.Instance.Run));
+            listner.Start();
+
+            for (int i = 0; i < 100; ++i)
+            {
+                Client client = new Client();
+                Thread thread = new Thread(new ThreadStart(() =>
+                {
+                    client.Start(ep, 10);
+                }));
+                clients.Add(client);
+                threads.Add(thread);
+                thread.Start();
+            }
+
+            for (int i = 0; i < threads.Count; ++i)
+            {
+                threads[i].Join();
+            }
         }
     }
 }
