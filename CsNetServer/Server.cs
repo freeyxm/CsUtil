@@ -58,7 +58,7 @@ namespace CsNetServer
         {
             string msg = Encoding.UTF8.GetString(data);
             string addr = mgr.GetSocket().RemoteEndPoint.ToString();
-            Console.WriteLine(string.Format("Recv msg: {0}, addr: {1}", msg, addr));
+            Logger.Debug("Recv msg: {0}, addr: {1}", msg, addr);
 
             string time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
             byte[] bytes = Encoding.UTF8.GetBytes(string.Format("hi {0}, {1}", addr, time));

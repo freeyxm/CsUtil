@@ -41,10 +41,10 @@ namespace CsNetClient
             {
                 mgr.SendMsg(bytes, () =>
                 {
-                    Console.WriteLine("send finished.");
+                    Logger.Debug("Send finished.");
                 }, () =>
                 {
-                    Console.WriteLine("send error.");
+                    Logger.Debug("Send error.");
                 });
 
                 Console.ReadLine();
@@ -55,7 +55,7 @@ namespace CsNetClient
         void OnRecvedData(MsgManager mgr, byte[] data)
         {
             string msg = Encoding.UTF8.GetString(data);
-            Console.WriteLine(string.Format("Recv msg: {0}", msg));
+            Logger.Debug(string.Format("Recv msg: {0}", msg));
         }
     }
 }
