@@ -123,6 +123,7 @@ namespace CsNet
                     }
                     catch (Exception e)
                     {
+                        Logger.Error(e.ToString());
                     }
                 }
                 else

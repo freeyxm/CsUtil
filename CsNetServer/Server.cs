@@ -23,16 +23,22 @@ namespace CsNetServer
         {
             var ret = m_socket.Bind(ep);
             if (ret != FResult.Success)
+            {
+                Logger.Error("Bind error: {0}", m_socket.ErrorMsg);
                 return;
+            }
 
             ret = m_socket.Listen(100);
             if (ret != FResult.Success)
+            {
+                Logger.Error("Listen error: {0}", m_socket.ErrorMsg);
                 return;
+            }
 
             Thread listner = new Thread(new ThreadStart(SocketListener.Instance.Run));
             listner.Start();
 
-            Console.WriteLine("Server started: " + m_socket.GetSocket().LocalEndPoint.ToString());
+            Logger.Info("Server started: {0}", m_socket.GetSocket().LocalEndPoint.ToString());
 
             while (true)
             {
