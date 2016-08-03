@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace CsNet
 {
-    public class MsgManager : SocketHandler
+    public class SocketMsg : SocketHandler
     {
         [StructLayoutAttribute(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
         class Header
@@ -34,10 +34,10 @@ namespace CsNet
         private int m_recvLength;
         private int m_headerSize;
 
-        private Action<MsgManager, byte[]> m_onRecvedData;
-        private Action<MsgManager> m_onSocketError;
+        private Action<SocketMsg, byte[]> m_onRecvedData;
+        private Action<SocketMsg> m_onSocketError;
 
-        public MsgManager(SocketBase socket)
+        public SocketMsg(SocketBase socket)
         {
             m_socket = socket;
             m_socket.GetSocket().Blocking = false;
@@ -51,21 +51,21 @@ namespace CsNet
             m_headerSize = Marshal.SizeOf(m_recvHeader);
         }
 
-        private MsgManager()
+        private SocketMsg()
         {
         }
 
-        ~MsgManager()
+        ~SocketMsg()
         {
             UnRegister();
         }
 
-        public void SetOnRecvedData(Action<MsgManager, byte[]> cb)
+        public void SetOnRecvedData(Action<SocketMsg, byte[]> cb)
         {
             m_onRecvedData = cb;
         }
 
-        public void SetOnSocketError(Action<MsgManager> cb)
+        public void SetOnSocketError(Action<SocketMsg> cb)
         {
             m_onSocketError = cb;
         }
@@ -82,7 +82,7 @@ namespace CsNet
                 m_sendQueue.Enqueue(msg);
                 if (m_sendQueue.Count == 1)
                 {
-                    SocketListener.Instance.Register(this, SocketListener.CheckFlag.Write);
+                    SocketListener.Instance.Register(this, CheckFlag.Write | CheckFlag.Error);
                 }
             }
         }
@@ -106,15 +106,20 @@ namespace CsNet
             {
                 ret = SendBuffer();
             }
-            while (ret == FResult.Success && m_sendQueue.Count > 0)
+            while (ret == FResult.Success)
             {
-                m_sendMsg = m_sendQueue.Dequeue();
-                m_sendLength = 0;
+                lock (m_sendQueue)
+                {
+                    if (m_sendQueue.Count == 0)
+                        break;
+                    m_sendMsg = m_sendQueue.Dequeue();
+                    m_sendLength = 0;
+                }
                 ret = SendBuffer();
             }
-            if (ret != FResult.WouldBlock)
+            if (m_sendMsg != null || m_sendQueue.Count > 0)
             {
-                SocketListener.Instance.UnRegister(this, SocketListener.CheckFlag.Write);
+                SocketListener.Instance.Register(this, CheckFlag.Write | CheckFlag.Error);
             }
         }
 
@@ -213,12 +218,12 @@ namespace CsNet
 
         public void Register()
         {
-            SocketListener.Instance.Register(this, SocketListener.CheckFlag.Read | SocketListener.CheckFlag.Error);
+            SocketListener.Instance.Register(this, CheckFlag.Read | CheckFlag.Error);
         }
 
         public void UnRegister()
         {
-            SocketListener.Instance.UnRegister(this, SocketListener.CheckFlag.All);
+            SocketListener.Instance.UnRegister(this, CheckFlag.All);
         }
 
         byte[] PackMsg(byte[] data, int offset, int size)

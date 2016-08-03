@@ -32,14 +32,14 @@ namespace CsNetClient
 
             m_bRun = true;
 
-            var mgr = new MsgManager(m_socket);
-            mgr.SetOnSocketError((m) => { m_bRun = false; });
-            mgr.SetOnRecvedData(OnRecvedData);
-            mgr.Register();
+            var socket = new SocketMsg(m_socket);
+            socket.SetOnSocketError((m) => { m_bRun = false; });
+            socket.SetOnRecvedData(OnRecvedData);
+            socket.Register();
 
             while (m_bRun)
             {
-                mgr.SendMsg(bytes, () =>
+                socket.SendMsg(bytes, () =>
                 {
                     Logger.Debug("Send finished.");
                 }, () =>
@@ -54,7 +54,7 @@ namespace CsNetClient
             }
         }
 
-        void OnRecvedData(MsgManager mgr, byte[] data)
+        void OnRecvedData(SocketMsg mgr, byte[] data)
         {
             string msg = Encoding.UTF8.GetString(data);
             Logger.Debug(string.Format("Recv msg: {0}", msg));

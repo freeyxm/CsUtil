@@ -18,8 +18,8 @@ namespace CsNetClient
             List<Client> clients = new List<Client>();
             List<Thread> threads = new List<Thread>();
 
-            Thread listner = new Thread(new ThreadStart(SocketListener.Instance.Run));
-            listner.Start();
+            ControlManager socketMgr = new ControlManager(1);
+            socketMgr.Start();
 
             for (int i = 0; i < 100; ++i)
             {

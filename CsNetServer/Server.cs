@@ -11,13 +11,13 @@ namespace CsNetServer
     class Server
     {
         private SocketBase m_socket;
-        private List<MsgManager> m_clients;
+        private List<SocketMsg> m_clients;
         private int m_requestCount;
 
         public Server()
         {
             m_socket = new SocketTcp(AddressFamily.InterNetwork);
-            m_clients = new List<MsgManager>();
+            m_clients = new List<SocketMsg>();
             m_requestCount = 0;
         }
 
@@ -37,8 +37,8 @@ namespace CsNetServer
                 return;
             }
 
-            Thread listner = new Thread(new ThreadStart(SocketListener.Instance.Run));
-            listner.Start();
+            ControlManager socketMgr = new ControlManager(2);
+            socketMgr.Start();
 
             Logger.Info("Server started: {0}", m_socket.GetSocket().LocalEndPoint.ToString());
 
@@ -47,19 +47,23 @@ namespace CsNetServer
                 Socket socket = m_socket.Accept();
                 if (socket != null)
                 {
-                    MsgManager mgr = new MsgManager(new SocketBase(socket));
-                    mgr.SetOnRecvedData(OnRecvedData);
-                    mgr.SetOnSocketError(OnSocketError);
-                    mgr.Register();
-                    m_clients.Add(mgr);
+                    SocketMsg s = new SocketMsg(new SocketBase(socket));
+                    s.SetOnRecvedData(OnRecvedData);
+                    s.SetOnSocketError(OnSocketError);
+                    s.Register();
+                    m_clients.Add(s);
                     Logger.Info("Client ON, count: {0}", m_clients.Count);
                 }
             }
         }
 
-        void OnRecvedData(MsgManager mgr, byte[] data)
+        void OnRecvedData(SocketMsg mgr, byte[] data)
         {
-            Logger.Info("Request count: {0}", ++m_requestCount);
+            ++m_requestCount;
+            if (m_requestCount % 1000 == 0)
+            {
+                Logger.Info("Request count: {0}K", m_requestCount / 1000);
+            }
 
             string msg = Encoding.UTF8.GetString(data);
             string addr = mgr.GetSocket().RemoteEndPoint.ToString();
@@ -73,12 +77,12 @@ namespace CsNetServer
             });
         }
 
-        void OnSocketError(MsgManager mgr)
+        void OnSocketError(SocketMsg mgr)
         {
             Close(mgr);
         }
 
-        void Close(MsgManager mgr)
+        void Close(SocketMsg mgr)
         {
             m_clients.Remove(mgr);
             Logger.Info("Client OFF, count: {0}", m_clients.Count);
