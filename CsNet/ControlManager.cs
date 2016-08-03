@@ -19,18 +19,23 @@ namespace CsNet
             m_workerNum = workerNum;
             m_workers = new List<SocketWorker>(workerNum);
             m_workerThreads = new List<Thread>(workerNum);
+
+            m_dispatcher = new SocketDispatcher(1000, 100);
+            m_listener = new SocketListener(1, 10000, m_dispatcher.Dispatch);
         }
 
         public void Start()
         {
-            m_dispatcher = new SocketDispatcher(1000, 100);
-            m_listener = new SocketListener(1, 10000, m_dispatcher.Dispatch);
-
             InitWorkers();
             StartWorkers();
 
             m_listenerThread = new Thread(new ThreadStart(m_listener.Run));
             m_listenerThread.Start();
+        }
+
+        public SocketListener GetSocketListener()
+        {
+            return m_listener;
         }
 
         private void InitWorkers()

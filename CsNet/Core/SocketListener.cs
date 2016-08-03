@@ -4,7 +4,7 @@ using System.Net.Sockets;
 
 namespace CsNet
 {
-    enum CheckFlag
+    public enum CheckFlag
     {
         Read = 0x01 << 0,
         Write = 0x01 << 1,
@@ -17,14 +17,8 @@ namespace CsNet
     /// <summary>
     /// 监听Socket状态
     /// </summary>
-    class SocketListener
+    public class SocketListener
     {
-        private static SocketListener m_instance;
-        public static SocketListener Instance
-        {
-            get { return m_instance; }
-        }
-
         private Dictionary<Socket, SocketHandler> m_readSockets;
         private Dictionary<Socket, SocketHandler> m_writeSockets;
         private Dictionary<Socket, SocketHandler> m_errorSockets;
@@ -53,7 +47,6 @@ namespace CsNet
             m_checkError = new List<Socket>(capacity);
             m_timeout = timeout;
             m_dispatch = dispatch;
-            m_instance = this;
         }
 
         /// <summary>

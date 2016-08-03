@@ -8,6 +8,17 @@ namespace CsNet
     /// </summary>
     public abstract class SocketHandler
     {
+        protected SocketListener m_socketListener;
+
+        public SocketHandler(SocketListener listener)
+        {
+            m_socketListener = listener;
+        }
+
+        private SocketHandler()
+        {
+        }
+
         public abstract Socket GetSocket();
         public abstract void OnSocketReadReady();
         public abstract void OnSocketWriteReady();

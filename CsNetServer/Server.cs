@@ -10,6 +10,7 @@ namespace CsNetServer
 {
     class Server
     {
+        private ControlManager m_ctlMgr;
         private SocketBase m_socket;
         private List<SocketMsg> m_clients;
         private int m_requestCount;
@@ -37,8 +38,8 @@ namespace CsNetServer
                 return;
             }
 
-            ControlManager socketMgr = new ControlManager(2);
-            socketMgr.Start();
+            m_ctlMgr = new ControlManager(2);
+            m_ctlMgr.Start();
 
             Logger.Info("Server started: {0}", m_socket.GetSocket().LocalEndPoint.ToString());
 
@@ -47,7 +48,7 @@ namespace CsNetServer
                 Socket socket = m_socket.Accept();
                 if (socket != null)
                 {
-                    SocketMsg s = new SocketMsg(new SocketBase(socket));
+                    SocketMsg s = new SocketMsg(new SocketBase(socket), m_ctlMgr.GetSocketListener());
                     s.SetOnRecvedData(OnRecvedData);
                     s.SetOnSocketError(OnSocketError);
                     s.Register();

@@ -23,7 +23,7 @@ namespace CsNetClient
 
             for (int i = 0; i < 100; ++i)
             {
-                Client client = new Client();
+                Client client = new Client(socketMgr);
                 Thread thread = new Thread(new ThreadStart(() =>
                 {
                     client.Start(ep, 10);

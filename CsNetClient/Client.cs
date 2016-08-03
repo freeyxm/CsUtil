@@ -10,12 +10,14 @@ namespace CsNetClient
 {
     class Client
     {
-        SocketBase m_socket;
-        bool m_bRun;
+        private ControlManager m_ctlMgr;
+        private SocketBase m_socket;
+        private bool m_bRun;
 
-        public Client()
+        public Client(ControlManager mgr)
         {
             m_socket = new SocketTcp(AddressFamily.InterNetwork);
+            m_ctlMgr = mgr;
         }
 
         public void Start(EndPoint ep, int sleep)
@@ -32,7 +34,7 @@ namespace CsNetClient
 
             m_bRun = true;
 
-            var socket = new SocketMsg(m_socket);
+            var socket = new SocketMsg(m_socket, m_ctlMgr.GetSocketListener());
             socket.SetOnSocketError((m) => { m_bRun = false; });
             socket.SetOnRecvedData(OnRecvedData);
             socket.Register();
