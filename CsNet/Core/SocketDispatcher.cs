@@ -28,11 +28,7 @@ namespace CsNet
                     var h = e.Current.handler;
                     if (tasks.ContainsKey(h))
                     {
-                        var flag = tasks[h];
-                        if ((flag & CheckFlag.Error) != 0)
-                            e.Current.check = CheckFlag.Error;
-                        else if ((e.Current.check & CheckFlag.Error) == 0)
-                            e.Current.check |= flag;
+                        e.Current.check |= tasks[h];
                         tasks.Remove(h);
                     }
                 }

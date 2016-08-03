@@ -23,9 +23,9 @@ namespace CsNet.Dispatcher
         {
             m_running = true;
 
-            T task = default(T);
             while (!m_quit)
             {
+                T task = default(T);
                 if (m_dispatcher.Consume(ref task))
                 {
                     Work(task);

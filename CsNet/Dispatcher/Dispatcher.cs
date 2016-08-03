@@ -37,17 +37,26 @@ namespace CsNet.Dispatcher
 
         public bool Consume(ref T task)
         {
+            m_consumer.WaitOne();
+
+            bool hasTask = false;
             lock (m_taskQueue)
             {
                 if (m_taskQueue.Count > 0)
                 {
                     task = m_taskQueue.Dequeue();
-                    m_producter.Release();
-                    return true;
+                    hasTask = true;
                 }
             }
-            m_consumer.WaitOne();
-            return false;
+            if (hasTask)
+            {
+                m_producter.Release();
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 }

@@ -12,14 +12,29 @@ namespace CsNet
 
         protected override void Work(TaskInfo task)
         {
-            if ((task.check & CheckFlag.Read) != 0)
-                task.handler.OnSocketReadReady();
-            if ((task.check & CheckFlag.Write) != 0)
-                task.handler.OnSocketWriteReady();
-            if ((task.check & CheckFlag.Error) != 0)
-                task.handler.OnSocketError();
-
-            task.handler.SetBusy(false);
+            try
+            {
+                if ((task.check & CheckFlag.Error) != 0)
+                {
+                    task.handler.OnSocketError();
+                }
+                else
+                {
+                    if ((task.check & CheckFlag.Write) != 0)
+                        task.handler.OnSocketWriteReady();
+                    if ((task.check & CheckFlag.Read) != 0)
+                        task.handler.OnSocketReadReady();
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e.Message);
+            }
+            finally
+            {
+                task.handler.SetBusy(false);
+                task.handler = null;
+            }
         }
     }
 }
