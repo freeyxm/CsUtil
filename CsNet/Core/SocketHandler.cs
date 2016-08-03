@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Sockets;
+using System.Threading;
 
 namespace CsNet
 {
@@ -25,30 +26,23 @@ namespace CsNet
         public abstract void OnSocketError();
 
         #region busy
-        private bool m_busy = false; // 同一时刻，只能有一个线程占用，以解决多线程同步问题。
-        private object m_busyLock = new object();
+        private int m_busy = 0; // 同一时刻，只能有一个线程占用，以解决多线程同步问题。
 
         public bool Busy
         {
-            get { lock (m_busyLock) { return m_busy; } }
+            get { return m_busy != 0; }
         }
 
         public bool SetBusy(bool busy)
         {
-            lock (m_busyLock)
+            if (busy)
             {
-                if (busy)
-                {
-                    if (m_busy)
-                        return false;
-                    m_busy = true;
-                    return true;
-                }
-                else
-                {
-                    m_busy = false;
-                    return true;
-                }
+                return Interlocked.CompareExchange(ref m_busy, 1, 0) == 0;
+            }
+            else
+            {
+                m_busy = 0;
+                return true;
             }
         }
         #endregion busy
