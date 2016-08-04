@@ -149,21 +149,22 @@ namespace CsNet
 
         public override void OnSocketReadReady()
         {
-            int size = m_socket.GetSocket().Available;
-            if (size == 0) // remote socket closed.
+            int maxSize = m_socket.GetSocket().Available;
+            if (maxSize == 0) // remote socket closed.
             {
                 OnSocketError();
                 return;
             }
 
-            while (size > 0)
+            while (maxSize > 0)
             {
                 if (m_recvLength < m_headerSize)
                 {
-                    size = Math.Min(size, m_headerSize - m_recvLength);
+                    int size = Math.Min(maxSize, m_headerSize - m_recvLength);
                     var ret = m_socket.Recv(m_recvBuffer, m_recvLength, size);
                     if (ret == FResult.Success)
                     {
+                        maxSize -= size;
                         m_recvLength += size;
                         if (m_recvLength >= m_headerSize)
                         {
@@ -177,6 +178,7 @@ namespace CsNet
                     else if (ret == FResult.WouldBlock)
                     {
                         m_recvLength += m_socket.RealRecv;
+                        break;
                     }
                     else
                     {
@@ -186,10 +188,11 @@ namespace CsNet
                 }
                 else
                 {
-                    size = Math.Min(size, m_recvHeader.totalSize - m_headerSize);
+                    int size = Math.Min(maxSize, m_recvHeader.totalSize - m_headerSize);
                     var ret = m_socket.Recv(m_recvBuffer, m_recvLength, size);
                     if (ret == FResult.Success)
                     {
+                        maxSize -= size;
                         m_recvLength += size;
                         if (m_recvLength >= m_recvHeader.totalSize)
                         {
@@ -200,6 +203,7 @@ namespace CsNet
                     else if (ret == FResult.WouldBlock)
                     {
                         m_recvLength += m_socket.RealRecv;
+                        break;
                     }
                     else
                     {
@@ -207,7 +211,6 @@ namespace CsNet
                         break;
                     }
                 }
-                size = m_socket.GetSocket().Available;
             }
         }
 
