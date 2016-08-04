@@ -79,7 +79,7 @@ namespace CsNet
                 m_sendQueue.Enqueue(msg);
                 if (m_sendQueue.Count == 1)
                 {
-                    m_socketListener.Register(this, CheckFlag.Write | CheckFlag.Error);
+                    m_socketListener.Register(this, CheckFlag.Write);
                 }
             }
         }
@@ -114,9 +114,14 @@ namespace CsNet
                 }
                 ret = SendBuffer();
             }
+
             if (m_sendMsg != null || m_sendQueue.Count > 0)
             {
-                m_socketListener.Register(this, CheckFlag.Write | CheckFlag.Error);
+                m_socketListener.Register(this, CheckFlag.Write);
+            }
+            else
+            {
+                m_socketListener.UnRegister(this, CheckFlag.Write);
             }
         }
 
@@ -147,7 +152,6 @@ namespace CsNet
             int size = m_socket.GetSocket().Available;
             if (size == 0) // remote socket closed.
             {
-                UnRegister();
                 OnSocketError();
                 return;
             }
