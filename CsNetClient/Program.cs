@@ -21,12 +21,12 @@ namespace CsNetClient
             ControlManager socketMgr = new ControlManager(1);
             socketMgr.Start();
 
-            for (int i = 0; i < 100; ++i)
+            for (int i = 0; i < 200; ++i)
             {
                 Client client = new Client(socketMgr);
                 Thread thread = new Thread(new ThreadStart(() =>
                 {
-                    client.Start(ep, 10);
+                    client.Start(ep, 5);
                 }));
                 clients.Add(client);
                 threads.Add(thread);
