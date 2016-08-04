@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
+using System.Threading;
 
 namespace CsNet
 {
@@ -19,13 +20,27 @@ namespace CsNet
     /// </summary>
     public class SocketListener
     {
-        private Dictionary<Socket, SocketHandler> m_readSockets;
-        private Dictionary<Socket, SocketHandler> m_writeSockets;
-        private Dictionary<Socket, SocketHandler> m_errorSockets;
+        private class CheckInfo
+        {
+            public Dictionary<Socket, SocketHandler> waitSockets;
+            public List<Socket> checkSockets;
+            public CheckFlag checkFlag;
+            public SpinLock spinLock;
+
+            public CheckInfo(int capacity, CheckFlag flag)
+            {
+                waitSockets = new Dictionary<Socket, SocketHandler>(capacity);
+                checkSockets = new List<Socket>(capacity);
+                checkFlag = flag;
+                spinLock = new SpinLock();
+            }
+
+            private CheckInfo() { }
+        }
+        private CheckInfo m_readInfo;
+        private CheckInfo m_writeInfo;
+        private CheckInfo m_errorInfo;
         private Dictionary<SocketHandler, CheckFlag> m_socketStates;
-        private List<Socket> m_checkRead;
-        private List<Socket> m_checkWrite;
-        private List<Socket> m_checkError;
         private int m_timeout;
 
         public delegate void Dispatch(Dictionary<SocketHandler, CheckFlag> source);
@@ -38,13 +53,10 @@ namespace CsNet
         /// <param name="timeout">Select timeout (microsecond).</param>
         public SocketListener(int capacity, int timeout, Dispatch dispatch)
         {
-            m_readSockets = new Dictionary<Socket, SocketHandler>(capacity);
-            m_writeSockets = new Dictionary<Socket, SocketHandler>(capacity);
-            m_errorSockets = new Dictionary<Socket, SocketHandler>(capacity);
-            m_socketStates = new Dictionary<SocketHandler, CheckFlag>();
-            m_checkRead = new List<Socket>(capacity);
-            m_checkWrite = new List<Socket>(capacity);
-            m_checkError = new List<Socket>(capacity);
+            m_readInfo = new CheckInfo(capacity, CheckFlag.Read);
+            m_writeInfo = new CheckInfo(capacity, CheckFlag.Write);
+            m_errorInfo = new CheckInfo(capacity, CheckFlag.Error);
+            m_socketStates = new Dictionary<SocketHandler, CheckFlag>(capacity);
             m_timeout = timeout;
             m_dispatch = dispatch;
         }
@@ -56,32 +68,31 @@ namespace CsNet
         /// <param name="flag"></param>
         public void Register(SocketHandler handler, CheckFlag flag)
         {
-            Socket socket = handler.GetSocket();
-
             if ((flag & CheckFlag.Read) != 0)
             {
-                lock (m_readSockets)
-                {
-                    if (!m_readSockets.ContainsKey(socket))
-                        m_readSockets.Add(socket, handler);
-                }
+                Register(handler, m_readInfo);
             }
             if ((flag & CheckFlag.Write) != 0)
             {
-                lock (m_writeSockets)
-                {
-                    if (!m_writeSockets.ContainsKey(socket))
-                        m_writeSockets.Add(socket, handler);
-                }
+                Register(handler, m_writeInfo);
             }
             if ((flag & CheckFlag.Error) != 0)
             {
-                lock (m_errorSockets)
-                {
-                    if (!m_errorSockets.ContainsKey(socket))
-                        m_errorSockets.Add(socket, handler);
-                }
+                Register(handler, m_errorInfo);
             }
+        }
+
+        private void Register(SocketHandler handler, CheckInfo checkInfo)
+        {
+            //lock (checkInfo.sockets)
+            LockRun(ref checkInfo.spinLock, () =>
+            {
+                Socket socket = handler.GetSocket();
+                if (!checkInfo.waitSockets.ContainsKey(socket))
+                {
+                    checkInfo.waitSockets.Add(socket, handler);
+                }
+            });
         }
 
         /// <summary>
@@ -91,49 +102,47 @@ namespace CsNet
         /// <param name="flag"></param>
         public void UnRegister(SocketHandler handler, CheckFlag flag)
         {
-            Socket socket = handler.GetSocket();
-
             if ((flag & CheckFlag.Read) != 0)
             {
-                lock (m_readSockets)
-                {
-                    m_readSockets.Remove(socket);
-                }
+                UnRegister(handler, m_readInfo);
             }
             if ((flag & CheckFlag.Write) != 0)
             {
-                lock (m_writeSockets)
-                {
-                    m_writeSockets.Remove(socket);
-                }
+                UnRegister(handler, m_writeInfo);
             }
             if ((flag & CheckFlag.Error) != 0)
             {
-                lock (m_errorSockets)
-                {
-                    m_errorSockets.Remove(socket);
-                }
+                UnRegister(handler, m_errorInfo);
             }
+        }
+
+        private void UnRegister(SocketHandler handler, CheckInfo checkInfo)
+        {
+            //lock (checkInfo.sockets)
+            LockRun(ref checkInfo.spinLock, () =>
+            {
+                checkInfo.waitSockets.Remove(handler.GetSocket());
+            });
         }
 
         public void Run()
         {
             while (true)
             {
-                BuildCheckList(ref m_checkRead, m_readSockets);
-                BuildCheckList(ref m_checkWrite, m_writeSockets);
-                BuildCheckList(ref m_checkError, m_errorSockets);
+                BuildCheckList(m_readInfo);
+                BuildCheckList(m_writeInfo);
+                BuildCheckList(m_errorInfo);
 
-                if (m_checkRead.Count > 0 || m_checkWrite.Count > 0 || m_checkError.Count > 0)
+                if (m_readInfo.checkSockets.Count > 0 || m_writeInfo.checkSockets.Count > 0 || m_errorInfo.checkSockets.Count > 0)
                 {
                     try
                     {
-                        Socket.Select(m_checkRead, m_checkWrite, m_checkError, m_timeout);
+                        Select();
 
                         m_socketStates.Clear();
-                        ExecuteCheckList(m_checkRead, m_readSockets, CheckFlag.Read);
-                        ExecuteCheckList(m_checkWrite, m_writeSockets, CheckFlag.Write);
-                        ExecuteCheckList(m_checkError, m_errorSockets, CheckFlag.Error);
+                        ExecuteCheckList(m_readInfo);
+                        ExecuteCheckList(m_writeInfo);
+                        ExecuteCheckList(m_errorInfo);
                         m_dispatch(m_socketStates);
                     }
                     catch (Exception e)
@@ -143,7 +152,7 @@ namespace CsNet
                 }
                 else
                 {
-                    System.Threading.Thread.Sleep(m_timeout / 1000);
+                    Sleep();
                 }
             } // end while
         }
@@ -153,46 +162,72 @@ namespace CsNet
         /// </summary>
         /// <param name="checkList"></param>
         /// <param name="source"></param>
-        void BuildCheckList(ref List<Socket> checkList, Dictionary<Socket, SocketHandler> source)
+        void BuildCheckList(CheckInfo info)
         {
-            checkList.Clear();
-            lock (source)
+            info.checkSockets.Clear();
+            //lock (source)
+            LockRun(ref info.spinLock, () =>
             {
-                var e = source.GetEnumerator();
+                var e = info.waitSockets.GetEnumerator();
                 while (e.MoveNext())
                 {
                     if (!e.Current.Value.Busy)
                     {
-                        checkList.Add(e.Current.Key);
+                        info.checkSockets.Add(e.Current.Key);
                     }
                 }
-            }
+            });
         }
 
-        void ExecuteCheckList(List<Socket> checkList, Dictionary<Socket, SocketHandler> source, CheckFlag flag)
+        void ExecuteCheckList(CheckInfo info)
         {
-            if (checkList.Count > 0)
+            if (info.checkSockets.Count > 0)
             {
-                lock (source)
+                //lock (source)
+                LockRun(ref info.spinLock, () =>
                 {
-                    for (int i = 0; i < checkList.Count; ++i)
+                    for (int i = 0; i < info.checkSockets.Count; ++i)
                     {
-                        var s = checkList[i];
-                        if (source.ContainsKey(s))
+                        var s = info.checkSockets[i];
+                        if (info.waitSockets.ContainsKey(s))
                         {
-                            var h = source[s];
+                            var h = info.waitSockets[s];
 
                             if (!h.SetBusy(true))
                                 continue;
 
                             if (m_socketStates.ContainsKey(h))
-                                m_socketStates[h] |= flag;
+                                m_socketStates[h] |= info.checkFlag;
                             else
-                                m_socketStates.Add(h, flag);
+                                m_socketStates.Add(h, info.checkFlag);
                         }
                     }
-                } // end lock
+                }); // end lock
             }
         } // end ExecuteCheckList
+
+        void LockRun(ref SpinLock spinLock, Action action)
+        {
+            bool gotLock = false;
+            try
+            {
+                spinLock.Enter(ref gotLock);
+                action();
+            }
+            finally
+            {
+                if (gotLock) spinLock.Exit();
+            }
+        }
+
+        void Select()
+        {
+            Socket.Select(m_readInfo.checkSockets, m_writeInfo.checkSockets, m_errorInfo.checkSockets, m_timeout);
+        }
+
+        void Sleep()
+        {
+            System.Threading.Thread.Sleep(m_timeout / 1000);
+        }
     }
 }
