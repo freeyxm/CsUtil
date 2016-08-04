@@ -40,6 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Dispatcher\Runnable.cs" />
     <Compile Include="Core\SocketHandler.cs" />
     <Compile Include="Core\SocketListener.cs" />
     <Compile Include="Dispatcher\Dispatcher.cs" />

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Threading;
+using CsNet.Dispatcher;
 
 namespace CsNet
 {
@@ -18,7 +19,7 @@ namespace CsNet
     /// <summary>
     /// 监听Socket状态
     /// </summary>
-    public class SocketListener
+    public class SocketListener : Loopable
     {
         private class CheckInfo
         {
@@ -125,36 +126,33 @@ namespace CsNet
             });
         }
 
-        public void Run()
+        protected override void Loop()
         {
-            while (true)
+            BuildCheckList(m_readInfo);
+            BuildCheckList(m_writeInfo);
+            BuildCheckList(m_errorInfo);
+
+            if (m_readInfo.checkSockets.Count > 0 || m_writeInfo.checkSockets.Count > 0 || m_errorInfo.checkSockets.Count > 0)
             {
-                BuildCheckList(m_readInfo);
-                BuildCheckList(m_writeInfo);
-                BuildCheckList(m_errorInfo);
-
-                if (m_readInfo.checkSockets.Count > 0 || m_writeInfo.checkSockets.Count > 0 || m_errorInfo.checkSockets.Count > 0)
+                try
                 {
-                    try
-                    {
-                        Select();
+                    Select();
 
-                        m_socketStates.Clear();
-                        ExecuteCheckList(m_readInfo);
-                        ExecuteCheckList(m_writeInfo);
-                        ExecuteCheckList(m_errorInfo);
-                        m_dispatch(m_socketStates);
-                    }
-                    catch (Exception e)
-                    {
-                        Logger.Error(e.ToString());
-                    }
+                    m_socketStates.Clear();
+                    ExecuteCheckList(m_readInfo);
+                    ExecuteCheckList(m_writeInfo);
+                    ExecuteCheckList(m_errorInfo);
+                    m_dispatch(m_socketStates);
                 }
-                else
+                catch (Exception e)
                 {
-                    Sleep();
+                    Logger.Error(e.ToString());
                 }
-            } // end while
+            }
+            else
+            {
+                Sleep();
+            }
         }
 
         /// <summary>
