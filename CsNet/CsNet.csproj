@@ -46,6 +46,7 @@
     <Compile Include="Dispatcher\Dispatcher.cs" />
     <Compile Include="Dispatcher\Worker.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SocketAccepter.cs" />
     <Compile Include="SocketMsg.cs" />
     <Compile Include="Socket\FResult.cs" />
     <Compile Include="Socket\SocketBase.cs" />
