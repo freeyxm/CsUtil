@@ -19,7 +19,7 @@ namespace CsNet
     /// <summary>
     /// 监听Socket状态
     /// </summary>
-    public class SocketListener : Loopable
+    public class SocketListener
     {
         private class CheckInfo
         {
@@ -52,14 +52,13 @@ namespace CsNet
         /// </summary>
         /// <param name="capacity">init capacity</param>
         /// <param name="timeout">Select timeout (microsecond).</param>
-        public SocketListener(int capacity, int timeout, Dispatch dispatch)
+        public SocketListener(int capacity, int timeout)
         {
             m_readInfo = new CheckInfo(capacity, CheckFlag.Read);
             m_writeInfo = new CheckInfo(capacity, CheckFlag.Write);
             m_errorInfo = new CheckInfo(capacity, CheckFlag.Error);
             m_socketStates = new Dictionary<SocketHandler, CheckFlag>(capacity);
             m_timeout = timeout;
-            m_dispatch = dispatch;
         }
 
         /// <summary>
@@ -126,7 +125,12 @@ namespace CsNet
             });
         }
 
-        protected override void Loop()
+        public void SetDispatch(Dispatch dispatch)
+        {
+            m_dispatch = dispatch;
+        }
+
+        public void Listen()
         {
             BuildCheckList(m_readInfo);
             BuildCheckList(m_writeInfo);

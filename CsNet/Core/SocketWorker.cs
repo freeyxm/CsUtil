@@ -20,10 +20,10 @@ namespace CsNet
                 }
                 else
                 {
-                    if ((task.check & CheckFlag.Write) != 0)
-                        task.handler.OnSocketWriteReady();
                     if ((task.check & CheckFlag.Read) != 0)
                         task.handler.OnSocketReadReady();
+                    if ((task.check & CheckFlag.Write) != 0)
+                        task.handler.OnSocketWriteReady();
                 }
             }
             catch (Exception e)

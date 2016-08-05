@@ -7,8 +7,8 @@ namespace CsNet
     public class ControlManager
     {
         private SocketDispatcher m_dispatcher;
-        private SocketListener m_listener;
-        private Thread m_listenerThread;
+        private SocketMaster m_master;
+        private Thread m_masterThread;
 
         private int m_workerNum;
         private List<SocketWorker> m_workers;
@@ -24,7 +24,7 @@ namespace CsNet
             m_dispatcher.SetProducterTimeout(1000);
             m_dispatcher.SetConsumerTimeout(500);
 
-            m_listener = new SocketListener(1, 10000, m_dispatcher.Dispatch);
+            m_master = new SocketMaster(m_dispatcher, new SocketListener(1, 10000));
         }
 
         public void Start()
@@ -32,13 +32,13 @@ namespace CsNet
             InitWorkers();
             StartWorkers();
 
-            m_listenerThread = new Thread(new ThreadStart(m_listener.Run));
-            m_listenerThread.Start();
+            m_masterThread = new Thread(new ThreadStart(m_master.Run));
+            m_masterThread.Start();
         }
 
         public void Stop()
         {
-            m_listener.Quit();
+            m_master.Quit();
             for (int i = 0; i < m_workers.Count; ++i)
             {
                 m_workers[i].Quit();
@@ -47,7 +47,7 @@ namespace CsNet
 
         public void Join()
         {
-            m_listenerThread.Join();
+            m_masterThread.Join();
             for (int i = 0; i < m_workerThreads.Count; ++i)
             {
                 m_workerThreads[i].Join();
@@ -56,7 +56,7 @@ namespace CsNet
 
         public SocketListener GetSocketListener()
         {
-            return m_listener;
+            return m_master.GetListener();
         }
 
         private void InitWorkers()
