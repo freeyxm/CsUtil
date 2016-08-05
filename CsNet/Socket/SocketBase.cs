@@ -308,6 +308,7 @@ namespace CsNet
             }
             m_errorMsg = null;
             m_remoteEndPoint = null;
+            GC.SuppressFinalize(this);
         }
 
         protected FResult DoAction(System.Action action)

@@ -23,9 +23,9 @@ namespace CsNet
 
         public override void Dispose()
         {
-            base.Dispose();
-
             UnRegister();
+
+            base.Dispose();
 
             if (m_socket != null)
             {
@@ -34,6 +34,8 @@ namespace CsNet
             }
 
             m_onAccept = null;
+
+            GC.SuppressFinalize(this);
         }
 
         public void SetOnAcceptSocket(OnAccept onAccept)

@@ -59,9 +59,9 @@ namespace CsNet
 
         public override void Dispose()
         {
-            base.Dispose();
-
             UnRegister();
+
+            base.Dispose();
 
             if (m_socket != null)
             {
@@ -80,6 +80,8 @@ namespace CsNet
             m_recvBuffer = null;
             m_onRecvedData = null;
             m_onSocketError = null;
+
+            GC.SuppressFinalize(this);
         }
 
         public void SetOnRecvedData(Action<SocketMsg, byte[]> cb)
