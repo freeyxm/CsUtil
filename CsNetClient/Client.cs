@@ -13,6 +13,8 @@ namespace CsNetClient
         private ControlManager m_ctlMgr;
         private SocketBase m_socket;
         private bool m_bRun;
+        private bool m_bReconnect;
+        private int m_reconnectCount;
 
         public Client(ControlManager mgr)
         {
@@ -33,17 +35,41 @@ namespace CsNetClient
             byte[] bytes = Encoding.UTF8.GetBytes(msg);
 
             m_bRun = true;
+            m_bReconnect = false;
+            m_reconnectCount = 0;
 
             var socket = new SocketMsg(m_socket, m_ctlMgr.GetSocketListener());
-            socket.SetOnSocketError((m) => { m_bRun = false; });
+            socket.SetOnSocketError(OnSocketError);
             socket.SetOnRecvedData(OnRecvedData);
             socket.Register();
 
             while (m_bRun)
             {
+                if (m_bReconnect)
+                {
+                    ++m_reconnectCount;
+                    if (socket.GetSocket().Reconnect() == FResult.Success)
+                    {
+                        Logger.Info("Reconnect Success.");
+                        socket.Register();
+                        m_bReconnect = false;
+                    }
+                    else
+                    {
+                        Logger.Info("Reconnect failed ({0}): {1}", m_reconnectCount, socket.GetSocket().ErrorMsg);
+                        if (m_reconnectCount >= 5)
+                        {
+                            m_bRun = false;
+                            break;
+                        }
+                        Thread.Sleep(2000);
+                    }
+                    continue;
+                }
+
                 socket.SendMsg(bytes, () =>
                 {
-                    Logger.Debug("Send finished.");
+                    //Logger.Debug("Send finished.");
                 }, () =>
                 {
                     Logger.Debug("Send error.");
@@ -56,10 +82,15 @@ namespace CsNetClient
             }
         }
 
-        void OnRecvedData(SocketMsg mgr, byte[] data)
+        void OnRecvedData(SocketMsg socket, byte[] data)
         {
             string msg = Encoding.UTF8.GetString(data);
-            Logger.Debug(string.Format("Recv msg: {0}", msg));
+            //Logger.Debug(string.Format("Recv msg: {0}", msg));
+        }
+
+        void OnSocketError(SocketMsg socket)
+        {
+            m_bReconnect = true;
         }
     }
 }
