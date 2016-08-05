@@ -298,7 +298,7 @@ namespace CsNet
             });
         }
 
-        public virtual void Dispose()
+        public void Dispose()
         {
             if (m_socket != null)
             {

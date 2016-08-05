@@ -18,7 +18,22 @@ namespace CsNet
 
         ~SocketAccepter()
         {
-            m_socketListener.UnRegister(this, CheckFlag.All);
+            Dispose();
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+
+            UnRegister();
+
+            if (m_socket != null)
+            {
+                m_socket.Dispose();
+                m_socket = null;
+            }
+
+            m_onAccept = null;
         }
 
         public void SetOnAcceptSocket(OnAccept onAccept)
@@ -59,7 +74,15 @@ namespace CsNet
 
         private void OnError()
         {
-            m_socketListener.UnRegister(this, CheckFlag.All);
+            UnRegister();
+        }
+
+        public void UnRegister()
+        {
+            if (m_socket != null && m_socket.Socket != null)
+            {
+                m_socketListener.UnRegister(this, CheckFlag.All);
+            }
         }
     }
 }

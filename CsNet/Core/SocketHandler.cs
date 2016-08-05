@@ -7,7 +7,7 @@ namespace CsNet
     /// <summary>
     /// Socket状态监听接口
     /// </summary>
-    public abstract class SocketHandler
+    public abstract class SocketHandler : IDisposable
     {
         protected SocketListener m_socketListener;
 
@@ -18,6 +18,11 @@ namespace CsNet
 
         private SocketHandler()
         {
+        }
+
+        public virtual void Dispose()
+        {
+            m_socketListener = null;
         }
 
         public abstract SocketBase GetSocket();

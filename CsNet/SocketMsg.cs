@@ -54,7 +54,32 @@ namespace CsNet
 
         ~SocketMsg()
         {
+            Dispose();
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+
             UnRegister();
+
+            if (m_socket != null)
+            {
+                m_socket.Dispose();
+                m_socket = null;
+            }
+
+            if (m_sendQueue != null)
+            {
+                m_sendQueue.Clear();
+                m_sendQueue = null;
+            }
+
+            m_sendMsg = null;
+            m_recvHeader = null;
+            m_recvBuffer = null;
+            m_onRecvedData = null;
+            m_onSocketError = null;
         }
 
         public void SetOnRecvedData(Action<SocketMsg, byte[]> cb)
@@ -115,13 +140,12 @@ namespace CsNet
                 ret = SendBuffer();
             }
 
-            if (m_sendMsg != null || m_sendQueue.Count > 0)
+            if (ret == FResult.Success || ret == FResult.WouldBlock)
             {
-                m_socketListener.Register(this, CheckFlag.Write);
-            }
-            else
-            {
-                m_socketListener.UnRegister(this, CheckFlag.Write);
+                if (m_sendMsg != null || m_sendQueue.Count > 0)
+                    m_socketListener.Register(this, CheckFlag.Write);
+                else
+                    m_socketListener.UnRegister(this, CheckFlag.Write);
             }
         }
 
@@ -225,17 +249,23 @@ namespace CsNet
 
         public void Register()
         {
-            CheckFlag flag = CheckFlag.Read | CheckFlag.Error;
-            if (m_sendQueue.Count > 0)
+            if (m_socket != null && m_socket.Socket != null)
             {
-                flag |= CheckFlag.Write;
+                CheckFlag flag = CheckFlag.Read | CheckFlag.Error;
+                if (m_sendQueue.Count > 0)
+                {
+                    flag |= CheckFlag.Write;
+                }
+                m_socketListener.Register(this, flag);
             }
-            m_socketListener.Register(this, flag);
         }
 
         public void UnRegister()
         {
-            m_socketListener.UnRegister(this, CheckFlag.All);
+            if (m_socket != null && m_socket.Socket != null)
+            {
+                m_socketListener.UnRegister(this, CheckFlag.All);
+            }
         }
 
         byte[] PackMsg(byte[] data, int offset, int size)

@@ -98,7 +98,7 @@ namespace CsNetServer
             }
         }
 
-        void OnRecvedData(SocketMsg mgr, byte[] data)
+        void OnRecvedData(SocketMsg socket, byte[] data)
         {
             ++m_requestCount;
             if (m_requestCount % 1000 == 0)
@@ -107,16 +107,13 @@ namespace CsNetServer
             }
 
             string msg = Encoding.UTF8.GetString(data);
-            string addr = mgr.GetSocket().Socket.RemoteEndPoint.ToString();
+            string addr = socket.GetSocket().Socket.RemoteEndPoint.ToString();
             //Logger.Debug("Recv msg: {0}, addr: {1}", msg, addr);
 
             string time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
             byte[] bytes = Encoding.UTF8.GetBytes(string.Format("hi {0}, {1}", addr, time));
 
-            mgr.SendMsg(bytes, null, () =>
-            {
-                Close(mgr);
-            });
+            socket.SendMsg(bytes, null, null);
         }
 
         void OnSocketError(SocketMsg socket)
@@ -126,7 +123,7 @@ namespace CsNetServer
 
         void Close(SocketMsg socket)
         {
-            socket.UnRegister();
+            socket.Dispose();
             lock (m_clients)
             {
                 m_clients.Remove(socket);
