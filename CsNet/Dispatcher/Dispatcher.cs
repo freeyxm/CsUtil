@@ -8,7 +8,7 @@ namespace CsNet.Dispatcher
     /// 分发中心，使用生产者-消费者模型。
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    abstract class Dispatcher<T>
+    public abstract class Dispatcher<T>
     {
         protected Queue<T> m_taskQueue;
         private Semaphore m_producer;

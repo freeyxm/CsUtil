@@ -3,16 +3,20 @@
 namespace CsNet.Dispatcher
 {
     /// <summary>
-    /// “工人”，从Dispatcher处领取并执行任务。
+    /// Worker，从Dispatcher分配任务。
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    abstract class Worker<T> : Loopable
+    public abstract class Worker<T> : Loopable
     {
         private Dispatcher<T> m_dispatcher;
 
         public Worker(Dispatcher<T> dispatcher)
         {
             m_dispatcher = dispatcher;
+        }
+
+        private Worker()
+        {
         }
 
         protected sealed override void Loop()
@@ -25,7 +29,7 @@ namespace CsNet.Dispatcher
         }
 
         /// <summary>
-        /// 执行具体的任务。
+        /// 执行任务。
         /// </summary>
         /// <param name="task"></param>
         protected abstract void Work(T task);
