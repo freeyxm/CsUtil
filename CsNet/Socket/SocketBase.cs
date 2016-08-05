@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 
 namespace CsNet
 {
-    public class SocketBase
+    public class SocketBase : IDisposable
     {
         public delegate void FCallback(FResult ret, int code, string msg);
 
@@ -101,10 +100,26 @@ namespace CsNet
             }
             Shutdown(SocketShutdown.Both);
             Close();
-            Socket socket = new Socket(m_socket.AddressFamily, m_socket.SocketType, m_socket.ProtocolType);
+            Socket socket = new Socket(m_socket.AddressFamily, m_socket.SocketType, m_socket.ProtocolType); // !!!
             m_socket.Dispose();
             m_socket = socket;
             return Connect(m_remoteEndPoint);
+        }
+
+        public bool Connected(bool current)
+        {
+            if (!current)
+                return m_socket.Connected;
+
+            if (!m_socket.Connected)
+                return false;
+
+            bool blocking = m_socket.Blocking;
+            m_socket.Blocking = false;
+            var ret = Send(new byte[0], 0, 0);
+            m_socket.Blocking = blocking;
+
+            return ret == FResult.Success || ret == FResult.WouldBlock;
         }
 
         public virtual FResult Send(byte[] buffer, int offset, int size)

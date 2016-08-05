@@ -152,7 +152,10 @@ namespace CsNet
             int maxSize = m_socket.Socket.Available;
             if (maxSize == 0) // remote socket closed.
             {
-                OnSocketError();
+                if (!m_socket.Connected(true))
+                {
+                    OnSocketError();
+                }
                 return;
             }
 
