@@ -10,7 +10,7 @@ namespace CsNetClient
     {
         static void Main(string[] args)
         {
-            Logger.LogLevel = Logger.Level.Info;
+            Logger.LogLevel = Logger.Level.Debug;
 
             IPAddress addr = IPAddress.Parse("127.0.0.1");
             IPEndPoint ep = new IPEndPoint(addr, 2016);
@@ -18,7 +18,7 @@ namespace CsNetClient
             List<Client> clients = new List<Client>();
             List<Thread> threads = new List<Thread>();
 
-            ControlManager socketMgr = new ControlManager(1);
+            ControlManager socketMgr = new ControlManager(2);
             socketMgr.Start();
 
             for (int i = 0; i < 200; ++i)
@@ -26,7 +26,7 @@ namespace CsNetClient
                 Client client = new Client(socketMgr);
                 Thread thread = new Thread(new ThreadStart(() =>
                 {
-                    client.Start(ep, 5);
+                    client.Start(ep, 10);
                 }));
                 clients.Add(client);
                 threads.Add(thread);
@@ -37,6 +37,11 @@ namespace CsNetClient
             {
                 threads[i].Join();
             }
+            clients.Clear();
+            threads.Clear();
+
+            Console.Write("Press any key to quit ...");
+            Console.ReadKey();
         }
     }
 }

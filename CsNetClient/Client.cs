@@ -15,6 +15,8 @@ namespace CsNetClient
         private bool m_bRun;
         private bool m_bReconnect;
         private int m_reconnectCount;
+        private static int m_sendCount = 0;
+        private static int m_recvCount = 0;
 
         public Client(ControlManager mgr)
         {
@@ -69,6 +71,7 @@ namespace CsNetClient
 
                 socket.SendMsg(bytes, () =>
                 {
+                    ++m_sendCount;
                     //Logger.Debug("Send finished.");
                 }, () =>
                 {
@@ -84,6 +87,12 @@ namespace CsNetClient
 
         void OnRecvedData(SocketMsg socket, byte[] data)
         {
+            ++m_recvCount;
+            if (m_recvCount % 1000 == 0)
+            {
+                Logger.Debug("Send: {0}K, Recv: {1}K", m_sendCount / 1000, m_recvCount / 1000);
+            }
+
             string msg = Encoding.UTF8.GetString(data);
             //Logger.Debug(string.Format("Recv msg: {0}", msg));
         }

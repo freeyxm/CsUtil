@@ -14,6 +14,7 @@ namespace CsNetServer
         private SocketAccepter m_socketAccepter;
         private List<SocketMsg> m_clients;
         private int m_requestCount;
+        private int m_responseCount;
         private byte[] m_debugData;
 
         public Server()
@@ -21,6 +22,7 @@ namespace CsNetServer
             m_socket = new SocketTcp(AddressFamily.InterNetwork);
             m_clients = new List<SocketMsg>();
             m_requestCount = 0;
+            m_responseCount = 0;
 
             m_debugData = Encoding.UTF8.GetBytes(string.Format("hi, this is debug data."));
         }
@@ -103,7 +105,7 @@ namespace CsNetServer
             ++m_requestCount;
             if (m_requestCount % 1000 == 0)
             {
-                Logger.Debug("Request count: {0}K", m_requestCount / 1000);
+                Logger.Debug("Request : {0}K, Response: {1}K", m_requestCount / 1000, m_responseCount / 1000);
             }
 
             string msg = Encoding.UTF8.GetString(data);
@@ -113,7 +115,7 @@ namespace CsNetServer
             string time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
             byte[] bytes = Encoding.UTF8.GetBytes(string.Format("hi {0}, {1}", addr, time));
 
-            socket.SendMsg(bytes, null, null);
+            socket.SendMsg(bytes, () => { ++m_responseCount; }, null);
         }
 
         void OnSocketError(SocketMsg socket)
