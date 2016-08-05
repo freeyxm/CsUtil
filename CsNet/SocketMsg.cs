@@ -167,7 +167,6 @@ namespace CsNet
             else
             {
                 m_sendMsg.onError?.Invoke();
-                ResetSendBuffer();
                 OnSocketError();
             }
             return ret;
@@ -200,7 +199,7 @@ namespace CsNet
                             Util.BytesToStruct(m_recvBuffer, 0, m_recvHeader);
                             if (m_recvHeader.sign != HEADER_SIGN)
                             {
-                                ResetRecvBuffer();
+                                ResetRecvBuffer(); // !!!
                             }
                         }
                     }
@@ -246,6 +245,8 @@ namespace CsNet
         public override void OnSocketError()
         {
             UnRegister();
+            ResetSendBuffer();
+            ResetRecvBuffer();
             m_onSocketError(this);
         }
 
