@@ -47,7 +47,7 @@ namespace CsNetServer
             m_socketAccepter = new SocketAccepter(m_socket, m_ctlMgr.GetSocketListener());
             m_socketAccepter.SetOnAcceptSocket(OnAcceptSocket);
 
-            Logger.Info("Server started: {0}", m_socket.GetSocket().LocalEndPoint.ToString());
+            Logger.Info("Server started: {0}", m_socket.Socket.LocalEndPoint.ToString());
 
             while (true)
             {
@@ -107,7 +107,7 @@ namespace CsNetServer
             }
 
             string msg = Encoding.UTF8.GetString(data);
-            string addr = mgr.GetSocket().RemoteEndPoint.ToString();
+            string addr = mgr.GetSocket().Socket.RemoteEndPoint.ToString();
             //Logger.Debug("Recv msg: {0}, addr: {1}", msg, addr);
 
             string time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");

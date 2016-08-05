@@ -19,6 +19,8 @@ namespace CsNet
         protected int m_realSend;
         protected int m_realRecv;
 
+        protected EndPoint m_remoteEndPoint;
+
         public SocketBase(AddressFamily af, SocketType st, ProtocolType pt)
         {
             Init(new Socket(af, st, pt));
@@ -35,8 +37,7 @@ namespace CsNet
 
         ~SocketBase()
         {
-            Close();
-            m_socket.Dispose();
+            Dispose();
         }
 
         private void Init(Socket socket)
@@ -75,6 +76,7 @@ namespace CsNet
 
         public virtual FResult Connect(EndPoint ep)
         {
+            m_remoteEndPoint = ep;
             return DoAction(() =>
             {
                 m_socket.Connect(ep);
@@ -87,6 +89,22 @@ namespace CsNet
             {
                 m_socket.Disconnect(reuseSocket);
             });
+        }
+
+        public virtual FResult Reconnect()
+        {
+            if (m_remoteEndPoint == null)
+            {
+                m_errorCode = (int)FResult.Error;
+                m_errorMsg = "Must call Connect before Reconnect.";
+                return FResult.Error;
+            }
+            Shutdown(SocketShutdown.Both);
+            Close();
+            Socket socket = new Socket(m_socket.AddressFamily, m_socket.SocketType, m_socket.ProtocolType);
+            m_socket.Dispose();
+            m_socket = socket;
+            return Connect(m_remoteEndPoint);
         }
 
         public virtual FResult Send(byte[] buffer, int offset, int size)
@@ -258,11 +276,23 @@ namespace CsNet
 
         public virtual FResult Close()
         {
+            Shutdown(SocketShutdown.Both);
             return DoAction(() =>
             {
-                m_socket.Shutdown(SocketShutdown.Both);
                 m_socket.Close();
             });
+        }
+
+        public virtual void Dispose()
+        {
+            if (m_socket != null)
+            {
+                Close();
+                m_socket.Dispose();
+                m_socket = null;
+            }
+            m_errorMsg = null;
+            m_remoteEndPoint = null;
         }
 
         protected FResult DoAction(System.Action action)
@@ -402,7 +432,7 @@ namespace CsNet
             }
         }
 
-        public Socket GetSocket() { return m_socket; }
+        public Socket Socket { get { return m_socket; } }
 
         public FResult State { get { return m_state; } }
         public int ErrorCode { get { return m_errorCode; } }

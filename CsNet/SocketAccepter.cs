@@ -26,9 +26,9 @@ namespace CsNet
             m_onAccept = onAccept;
         }
 
-        public override Socket GetSocket()
+        public override SocketBase GetSocket()
         {
-            return m_socket.GetSocket();
+            return m_socket;
         }
 
         public override void OnSocketReadReady()

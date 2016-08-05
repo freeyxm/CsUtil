@@ -20,7 +20,7 @@ namespace CsNet
         {
         }
 
-        public abstract Socket GetSocket();
+        public abstract SocketBase GetSocket();
         public abstract void OnSocketReadReady();
         public abstract void OnSocketWriteReady();
         public abstract void OnSocketError();

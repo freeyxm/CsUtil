@@ -41,7 +41,7 @@ namespace CsNet
             : base(listener)
         {
             m_socket = socket;
-            m_socket.GetSocket().Blocking = false;
+            m_socket.Socket.Blocking = false;
 
             m_sendQueue = new Queue<Msg>();
             m_sendLength = 0;
@@ -91,9 +91,9 @@ namespace CsNet
             m_onRecvedData(this, data);
         }
 
-        public override Socket GetSocket()
+        public override SocketBase GetSocket()
         {
-            return m_socket.GetSocket();
+            return m_socket;
         }
 
         public override void OnSocketWriteReady()
@@ -149,7 +149,7 @@ namespace CsNet
 
         public override void OnSocketReadReady()
         {
-            int maxSize = m_socket.GetSocket().Available;
+            int maxSize = m_socket.Socket.Available;
             if (maxSize == 0) // remote socket closed.
             {
                 OnSocketError();
@@ -222,7 +222,12 @@ namespace CsNet
 
         public void Register()
         {
-            m_socketListener.Register(this, CheckFlag.Read | CheckFlag.Error);
+            CheckFlag flag = CheckFlag.Read | CheckFlag.Error;
+            if (m_sendQueue.Count > 0)
+            {
+                flag |= CheckFlag.Write;
+            }
+            m_socketListener.Register(this, flag);
         }
 
         public void UnRegister()

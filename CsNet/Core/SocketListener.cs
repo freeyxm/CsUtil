@@ -87,7 +87,7 @@ namespace CsNet
             //lock (checkInfo.sockets)
             LockRun(ref checkInfo.spinLock, () =>
             {
-                Socket socket = handler.GetSocket();
+                Socket socket = handler.GetSocket().Socket;
                 if (!checkInfo.waitSockets.ContainsKey(socket))
                 {
                     checkInfo.waitSockets.Add(socket, handler);
@@ -121,7 +121,7 @@ namespace CsNet
             //lock (checkInfo.sockets)
             LockRun(ref checkInfo.spinLock, () =>
             {
-                checkInfo.waitSockets.Remove(handler.GetSocket());
+                checkInfo.waitSockets.Remove(handler.GetSocket().Socket);
             });
         }
 
