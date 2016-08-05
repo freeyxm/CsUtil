@@ -196,7 +196,7 @@ namespace CsNet
                         m_recvLength += size;
                         if (m_recvLength >= m_headerSize)
                         {
-                            Util.BytesToStruct(m_recvBuffer, 0, m_recvHeader);
+                            Utility.BytesToStruct(m_recvBuffer, 0, m_recvHeader);
                             if (m_recvHeader.sign != HEADER_SIGN)
                             {
                                 ResetRecvBuffer(); // !!!
@@ -278,7 +278,7 @@ namespace CsNet
             header.totalSize = m_headerSize + size;
 
             byte[] buffer = new byte[m_headerSize + size];
-            Util.StructToBytes(header, ref buffer, 0);
+            Utility.StructToBytes(header, ref buffer, 0);
             Array.Copy(data, offset, buffer, m_headerSize, size);
 
             return buffer;

@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace CsNet
 {
-    class Util
+    class Utility
     {
         /// <summary>
         /// 结构体转byte数组

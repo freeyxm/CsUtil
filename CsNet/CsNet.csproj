@@ -58,7 +58,7 @@
     <Compile Include="Socket\SocketTcp.cs" />
     <Compile Include="Core\SocketWorker.cs" />
     <Compile Include="Util\Logger.cs" />
-    <Compile Include="Util\Util.cs" />
+    <Compile Include="Util\Utility.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
