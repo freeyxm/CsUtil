@@ -57,6 +57,7 @@
     <Compile Include="ControlManager.cs" />
     <Compile Include="Socket\SocketTcp.cs" />
     <Compile Include="Core\SocketWorker.cs" />
+    <Compile Include="Util\AvlTree.cs" />
     <Compile Include="Util\Logger.cs" />
     <Compile Include="Util\Utility.cs" />
   </ItemGroup>
