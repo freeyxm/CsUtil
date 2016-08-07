@@ -274,85 +274,85 @@ namespace CsNet.Util
         #endregion Remove
 
         #region Recursive Traverse
-        public void TraversePreOrder(TraverseActionRef action)
+        public void TraversePreOrder_rf(TraverseActionRef action)
         {
             if (m_root != null)
             {
-                TraversePreOrder(m_root, action);
+                TraversePreOrder_rf(m_root, action);
             }
         }
 
-        private void TraversePreOrder(Node node, TraverseActionRef action)
+        private void TraversePreOrder_rf(Node node, TraverseActionRef action)
         {
             action(node.key, ref node.value);
 
             if (node.lchild != null)
-                TraversePreOrder(node.lchild, action);
+                TraversePreOrder_rf(node.lchild, action);
 
             if (node.rchild != null)
-                TraversePreOrder(node.rchild, action);
+                TraversePreOrder_rf(node.rchild, action);
         }
 
-        public void TraversePreOrder_nf(TraverseAction action)
+        public void TraversePreOrder_r(TraverseAction action)
         {
             if (m_root != null)
             {
-                TraversePreOrder_nf(m_root, action);
+                TraversePreOrder_r(m_root, action);
             }
         }
 
-        private void TraversePreOrder_nf(Node node, TraverseAction action)
+        private void TraversePreOrder_r(Node node, TraverseAction action)
         {
             action(node.key, node.value);
 
             if (node.lchild != null)
-                TraversePreOrder_nf(node.lchild, action);
+                TraversePreOrder_r(node.lchild, action);
 
             if (node.rchild != null)
-                TraversePreOrder_nf(node.rchild, action);
+                TraversePreOrder_r(node.rchild, action);
         }
 
-        public void TraverseInOrder(TraverseActionRef action)
+        public void TraverseInOrder_rf(TraverseActionRef action)
         {
             if (m_root != null)
             {
-                TraverseInOrder(m_root, action);
+                TraverseInOrder_rf(m_root, action);
             }
         }
 
-        private void TraverseInOrder(Node node, TraverseActionRef action)
+        private void TraverseInOrder_rf(Node node, TraverseActionRef action)
         {
             if (node.lchild != null)
-                TraverseInOrder(node.lchild, action);
+                TraverseInOrder_rf(node.lchild, action);
 
             action(node.key, ref node.value);
 
             if (node.rchild != null)
-                TraverseInOrder(node.rchild, action);
+                TraverseInOrder_rf(node.rchild, action);
         }
 
-        public void TraversePostOrder(TraverseActionRef action)
+        public void TraversePostOrder_rf(TraverseActionRef action)
         {
             if (m_root != null)
             {
-                TraversePostOrder(m_root, action);
+                TraversePostOrder_rf(m_root, action);
             }
         }
 
-        private void TraversePostOrder(Node node, TraverseActionRef action)
+        private void TraversePostOrder_rf(Node node, TraverseActionRef action)
         {
             if (node.lchild != null)
-                TraversePostOrder(node.lchild, action);
+                TraversePostOrder_rf(node.lchild, action);
 
             if (node.rchild != null)
-                TraversePostOrder(node.rchild, action);
+                TraversePostOrder_rf(node.rchild, action);
 
             action(node.key, ref node.value);
         }
         #endregion Recursive Traverse
 
         #region Non Recursive Traverse
-        public void TraversePreOrder_nr(TraverseActionRef action)
+        public void TraversePreOrder(TraverseActionRef action)
         {
             if (m_root == null)
                 return;
@@ -382,7 +382,7 @@ namespace CsNet.Util
             } while (true);
         }
 
-        public void TraverseInOrder_nr(TraverseActionRef action)
+        public void TraverseInOrder(TraverseActionRef action)
         {
             if (m_root == null)
                 return;
@@ -421,7 +421,7 @@ namespace CsNet.Util
             m_traverseStack.Push(node);
         }
 
-        public void TraversePostOrder_nr(TraverseActionRef action)
+        public void TraversePostOrder(TraverseActionRef action)
         {
             if (m_root == null)
                 return;
