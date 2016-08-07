@@ -10,6 +10,7 @@ namespace CsNet.Util
 
         private class Node
         {
+            public int hashCode;
             public K key;
             public V value;
             public Node parent;
@@ -29,19 +30,25 @@ namespace CsNet.Util
 
         private Node m_root;
 
-        private K m_curKey;
-        private V m_curValue;
+        private int m_hashCode;
+        private Node m_newNode;
         private bool m_heightChanged;
 
         private Queue<Node> m_cacheQueue;
-        private Queue<Node> m_traverseQueue;
         private Stack<Node> m_traverseStack;
 
+        private IEqualityComparer<K> m_comparer;
+
         public AvlTree(int capacity = 0)
+            : this(null, capacity)
+        {
+        }
+
+        public AvlTree(IEqualityComparer<K> comparer, int capacity = 0)
         {
             m_cacheQueue = new Queue<Node>(capacity);
-            m_traverseQueue = new Queue<Node>();
             m_traverseStack = new Stack<Node>();
+            m_comparer = comparer ?? EqualityComparer<K>.Default;
         }
 
         #region Insert
@@ -54,24 +61,23 @@ namespace CsNet.Util
             else
             {
                 m_heightChanged = false;
-                m_curKey = key;
-                m_curValue = value;
+                m_newNode = NewNode(key, value);
 
                 Add(m_root);
 
-                m_curKey = default(K);
-                m_curValue = default(V);
+                m_newNode = null;
             }
         }
 
         private void Add(Node target)
         {
-            int cmp = ComparKey(m_curKey, target.key);
+            int cmp = m_newNode.hashCode.CompareTo(target.hashCode);
             if (cmp < 0)
             {
                 if (target.lchild == null)
                 {
-                    target.lchild = NewNode(m_curKey, m_curValue, target);
+                    m_newNode.parent = target;
+                    target.lchild = m_newNode;
                     target.balance++;
                     if (target.balance == Balance.LH)
                         m_heightChanged = true;
@@ -90,7 +96,8 @@ namespace CsNet.Util
             {
                 if (target.rchild == null)
                 {
-                    target.rchild = NewNode(m_curKey, m_curValue, target);
+                    m_newNode.parent = target;
+                    target.rchild = m_newNode;
                     target.balance--;
                     if (target.balance == Balance.RH)
                         m_heightChanged = true;
@@ -115,18 +122,15 @@ namespace CsNet.Util
             if (m_root != null)
             {
                 m_heightChanged = false;
-                m_curKey = key;
-
+                m_hashCode = m_comparer.GetHashCode(key);
                 ret = Remove(ref m_root);
-
-                m_curKey = default(K);
             }
             return ret;
         }
 
         private bool Remove(ref Node root)
         {
-            int cmp = ComparKey(m_curKey, root.key);
+            int cmp = m_hashCode.CompareTo(root.hashCode);
             if (cmp == 0)
             {
                 var tmp = root;
@@ -350,16 +354,13 @@ namespace CsNet.Util
         #region Non Recursive Traverse
         public void TraversePreOrder_nr(TraverseActionRef action)
         {
-            m_traverseStack.Clear();
-            if (m_root != null)
-            {
-                m_traverseStack.Push(m_root);
-            }
+            if (m_root == null)
+                return;
 
-            Node node;
-            while (m_traverseStack.Count > 0)
+            Node node = m_root;
+            m_traverseStack.Clear();
+            do
             {
-                node = m_traverseStack.Pop();
                 action(node.key, ref node.value);
 
                 if (node.rchild != null)
@@ -369,33 +370,43 @@ namespace CsNet.Util
 
                 if (node.lchild != null)
                 {
-                    m_traverseStack.Push(node.lchild);
+                    node = node.lchild;
                 }
-            }
+                else
+                {
+                    if (m_traverseStack.Count > 0)
+                        node = m_traverseStack.Pop();
+                    else
+                        break;
+                }
+            } while (true);
         }
 
         public void TraverseInOrder_nr(TraverseActionRef action)
         {
+            if (m_root == null)
+                return;
+
             m_traverseStack.Clear();
-            if (m_root != null)
-            {
-                PushInOrder(m_root);
-            }
+            PushInOrder(m_root);
 
             Node node;
             while (m_traverseStack.Count > 0)
             {
                 node = m_traverseStack.Peek();
 
-                while (node.lchild != null && !node.lchild.marked)
+                while (!node.marked)
                 {
-                    PushInOrder(node.lchild);
-                    node = node.lchild;
+                    node.marked = true;
+                    if (node.lchild != null)
+                    {
+                        PushInOrder(node.lchild);
+                        node = node.lchild;
+                    }
                 }
 
                 m_traverseStack.Pop();
                 action(node.key, ref node.value);
-                node.marked = true;
 
                 if (node.rchild != null)
                 {
@@ -406,38 +417,38 @@ namespace CsNet.Util
 
         private void PushInOrder(Node node)
         {
-            if (node.lchild != null)
-            {
-                node.lchild.marked = false;
-            }
             node.marked = false;
             m_traverseStack.Push(node);
         }
 
         public void TraversePostOrder_nr(TraverseActionRef action)
         {
+            if (m_root == null)
+                return;
+
             m_traverseStack.Clear();
-            if (m_root != null)
-            {
-                PushPostOrder(m_root);
-            }
+            PushPostOrder(m_root);
 
             Node node;
+            bool hasChild;
             while (m_traverseStack.Count > 0)
             {
                 node = m_traverseStack.Peek();
-                bool hasChild = false;
+                hasChild = false;
 
-                if (node.rchild != null && !node.rchild.marked)
+                if (!node.marked)
                 {
-                    PushPostOrder(node.rchild);
-                    hasChild = true;
-                }
-
-                if (node.lchild != null && !node.lchild.marked)
-                {
-                    PushPostOrder(node.lchild);
-                    hasChild = true;
+                    if (node.rchild != null)
+                    {
+                        PushPostOrder(node.rchild);
+                        hasChild = true;
+                    }
+                    if (node.lchild != null)
+                    {
+                        PushPostOrder(node.lchild);
+                        hasChild = true;
+                    }
+                    node.marked = true;
                 }
 
                 if (!hasChild)
@@ -450,28 +461,8 @@ namespace CsNet.Util
 
         private void PushPostOrder(Node node)
         {
-            if (node.lchild != null)
-            {
-                node.lchild.marked = false;
-            }
-            if (node.rchild != null)
-            {
-                node.rchild.marked = false;
-            }
-            node.marked = true;
+            node.marked = false;
             m_traverseStack.Push(node);
-        }
-
-        private void Enqueue(Node node)
-        {
-            node.marked = true;
-
-            if (node.lchild != null)
-                node.lchild.marked = false;
-            if (node.rchild != null)
-                node.rchild.marked = false;
-
-            m_traverseQueue.Enqueue(node);
         }
         #endregion Non Recursive Traverse
 
@@ -846,18 +837,14 @@ namespace CsNet.Util
         }
         #endregion Rotation
 
-        private int ComparKey(K k1, K key2)
-        {
-            return k1.GetHashCode().CompareTo(key2.GetHashCode());
-        }
-
         private Node FindKey(K key)
         {
             Node node = m_root;
+            int hashCode = m_comparer.GetHashCode(key);
             int cmp;
             while (node != null)
             {
-                cmp = ComparKey(key, node.key);
+                cmp = hashCode.CompareTo(node.hashCode);
                 if (cmp == 0)
                     break;
                 else if (cmp < 0)
@@ -895,6 +882,7 @@ namespace CsNet.Util
             node.lchild = null;
             node.rchild = null;
             node.balance = 0;
+            node.hashCode = m_comparer.GetHashCode(key);
             return node;
         }
 
