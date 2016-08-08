@@ -611,7 +611,7 @@ namespace CsNet.Util
                                 target.balance = Balance.EH;
                                 break;
                             default:
-                                throw new Exception(string.Format("balance invalid: left up, rd {0}", rd.balance));
+                                throw new InvalidBalanceException("left up, rd", rd.balance);
                         }
                         rd.balance = Balance.EH;
                         LeftRotation(lc);
@@ -619,7 +619,7 @@ namespace CsNet.Util
                     }
                     break;
                 default:
-                    throw new Exception(string.Format("balance invalid: left up, lc {0}", lc.balance));
+                    throw new InvalidBalanceException("left up, lc", lc.balance);
             }
             return false;
         }
@@ -659,7 +659,7 @@ namespace CsNet.Util
                                 target.balance = Balance.EH;
                                 break;
                             default:
-                                throw new Exception(string.Format("balance invalid: right up, ld {0}", ld.balance));
+                                throw new InvalidBalanceException("right up, ld", ld.balance);
                         }
                         ld.balance = Balance.EH;
                         RightRotation(rc);
@@ -667,7 +667,7 @@ namespace CsNet.Util
                     }
                     break;
                 default:
-                    throw new Exception(string.Format("balance invalid: right up, rc {0}", rc.balance));
+                    throw new InvalidBalanceException("right up, rc", rc.balance);
             }
             return false;
         }
@@ -718,7 +718,7 @@ namespace CsNet.Util
                                 target.balance = Balance.EH;
                                 break;
                             default:
-                                throw new Exception(string.Format("balance invalid: left down, ld {0}", ld.balance));
+                                throw new InvalidBalanceException("left down, ld", ld.balance);
                         }
                         ld.balance = Balance.EH;
                         RightRotation(rc);
@@ -727,7 +727,7 @@ namespace CsNet.Util
                     }
                     break;
                 default:
-                    throw new Exception(string.Format("balance invalid: left down, rc {0}", rc.balance));
+                    throw new InvalidBalanceException("left down, rc", rc.balance);
             }
             return heightChanged;
         }
@@ -778,7 +778,7 @@ namespace CsNet.Util
                                 target.balance = Balance.EH;
                                 break;
                             default:
-                                throw new Exception(string.Format("balance invalid: right down, rd {0}", rd.balance));
+                                throw new InvalidBalanceException("right down, rd", rd.balance);
                         }
                         rd.balance = Balance.EH;
                         LeftRotation(lc);
@@ -787,7 +787,7 @@ namespace CsNet.Util
                     }
                     break;
                 default:
-                    throw new Exception(string.Format("balance invalid: right down, lc {0}", lc.balance));
+                    throw new InvalidBalanceException("right down, lc", lc.balance);
             }
             return heightChanged;
         }
@@ -811,7 +811,7 @@ namespace CsNet.Util
                     break;
                 default:
                     m_heightChanged = false;
-                    throw new Exception(string.Format("balance invalid: left up, {0}", target.balance));
+                    throw new InvalidBalanceException("left up, t", target.balance);
             }
         }
 
@@ -834,7 +834,7 @@ namespace CsNet.Util
                     break;
                 default:
                     m_heightChanged = false;
-                    throw new Exception(string.Format("balance invalid: left down, {0}", target.balance));
+                    throw new InvalidBalanceException("left down, t", target.balance);
             }
         }
 
@@ -857,7 +857,7 @@ namespace CsNet.Util
                     break;
                 default:
                     m_heightChanged = false;
-                    throw new Exception(string.Format("balance invalid: right up, {0}", target.balance));
+                    throw new InvalidBalanceException("right up, t", target.balance);
             }
         }
 
@@ -880,7 +880,7 @@ namespace CsNet.Util
                     break;
                 default:
                     m_heightChanged = false;
-                    throw new Exception(string.Format("balance invalid: right down, {0}", target.balance));
+                    throw new InvalidBalanceException("right down, t", target.balance);
             }
         }
         #endregion Balance
@@ -945,7 +945,10 @@ namespace CsNet.Util
                 return true;
 
             if (node.balance < Balance.RH || node.balance > Balance.LH)
-                return false;
+            {
+                throw new InvalidBalanceException(string.Format("node[{0}]", node.hashCode), node.balance);
+                //return false;
+            }
 
             bool ret = true;
             if (ret && node.lchild != null)
@@ -957,6 +960,14 @@ namespace CsNet.Util
                 ret = _ValidBalance(node.rchild);
             }
             return ret;
+        }
+
+        public class InvalidBalanceException : Exception
+        {
+            public InvalidBalanceException(string where, int value)
+                : base(string.Format("balance invalid. {0} = {1}", where, value))
+            {
+            }
         }
     }
 }
