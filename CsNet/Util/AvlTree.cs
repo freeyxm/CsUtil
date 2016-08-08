@@ -136,12 +136,51 @@ namespace CsNet.Util
         private bool Remove(Node target)
         {
             int cmp = m_hashCode.CompareTo(target.hashCode);
-            if (cmp == 0)
+            if (cmp < 0)
             {
-                if (target.lchild == null || target.rchild == null)
+                if (target.lchild == null)
+                    return false;
+                bool ret = Remove(target.lchild);
+                if (ret && m_heightChanged)
                 {
-                    PromoteChild(target);
+                    target.balance--;
+                    CheckLeftDown(target);
+                }
+                return ret;
+            }
+            else if (cmp > 0)
+            {
+                if (target.rchild == null)
+                    return false;
+                bool ret = Remove(target.rchild);
+                if (ret && m_heightChanged)
+                {
+                    target.balance++;
+                    CheckRightDown(target);
+                }
+                return ret;
+            }
+            else
+            {
+                if (target.lchild == null)
+                {
+                    PromoteRightChild(target);
                     m_heightChanged = true;
+                }
+                else if (target.rchild == null)
+                {
+                    PromoteLeftChild(target);
+                    m_heightChanged = true;
+                }
+                else if (target.balance == Balance.LH) // 从较高的子树上选择替换节点
+                {
+                    var node = RemoveRightest(target.lchild);
+                    ReplaceNode(target, node);
+                    if (m_heightChanged)
+                    {
+                        node.balance--;
+                        CheckLeftDown(node);
+                    }
                 }
                 else
                 {
@@ -157,29 +196,25 @@ namespace CsNet.Util
                 DelNode(target);
                 return true;
             }
-            else if (cmp < 0)
+        }
+
+        private Node RemoveRightest(Node target)
+        {
+            if (target.rchild == null)
             {
-                if (target.lchild == null)
-                    return false;
-                bool ret = Remove(target.lchild);
-                if (ret && m_heightChanged)
-                {
-                    target.balance--;
-                    CheckLeftDown(target);
-                }
-                return ret;
+                PromoteLeftChild(target);
+                m_heightChanged = true;
+                return target;
             }
             else
             {
-                if (target.rchild == null)
-                    return false;
-                bool ret = Remove(target.rchild);
-                if (ret && m_heightChanged)
+                var node = RemoveRightest(target.rchild);
+                if (m_heightChanged)
                 {
                     target.balance++;
                     CheckRightDown(target);
                 }
-                return ret;
+                return node;
             }
         }
 
@@ -187,7 +222,7 @@ namespace CsNet.Util
         {
             if (target.lchild == null)
             {
-                PromoteChild(target);
+                PromoteRightChild(target);
                 m_heightChanged = true;
                 return target;
             }
@@ -226,6 +261,7 @@ namespace CsNet.Util
                     from.parent.lchild = to;
                 else
                     from.parent.rchild = to;
+                from.parent = null;
             }
 
             to.balance = from.balance;
@@ -236,27 +272,14 @@ namespace CsNet.Util
             }
         }
 
-        private bool PromoteChild(Node target)
+        private void PromoteLeftChild(Node target)
         {
-            Node child = null;
-            if (target.rchild == null)
-            {
-                child = target.lchild;
-                target.lchild = null;
-            }
-            else if (target.lchild == null)
-            {
-                child = target.rchild;
-                target.rchild = null;
-            }
-            else
-            {
-                return false;
-            }
+            Node child = target.lchild;
 
             if (child != null)
             {
                 child.parent = target.parent;
+                target.lchild = null;
             }
 
             if (target.parent != null)
@@ -272,8 +295,31 @@ namespace CsNet.Util
             {
                 m_root = child;
             }
+        }
 
-            return true;
+        private void PromoteRightChild(Node target)
+        {
+            Node child = target.rchild;
+
+            if (child != null)
+            {
+                child.parent = target.parent;
+                target.rchild = null;
+            }
+
+            if (target.parent != null)
+            {
+                if (target.parent.lchild == target)
+                    target.parent.lchild = child;
+                else
+                    target.parent.rchild = child;
+                target.parent = null;
+            }
+
+            if (m_root == target)
+            {
+                m_root = child;
+            }
         }
         #endregion Remove
 
