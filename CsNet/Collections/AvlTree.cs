@@ -35,7 +35,7 @@ namespace CsNet.Collections
         private int m_hashCode;
         private bool m_heightChanged;
 
-        private Queue<Node> m_cacheQueue;
+        private Cache<Node> m_nodeCache;
         private Stack<Node> m_traverseStack;
 
         private IEqualityComparer<K> m_comparer;
@@ -47,13 +47,9 @@ namespace CsNet.Collections
 
         public AvlTree(IEqualityComparer<K> comparer, int capacity = 0)
         {
-            m_cacheQueue = new Queue<Node>(capacity);
+            m_nodeCache = new Cache<Node>(capacity);
             m_traverseStack = new Stack<Node>();
             m_comparer = comparer ?? EqualityComparer<K>.Default;
-            for (int i = 0; i < capacity; ++i)
-            {
-                m_cacheQueue.Enqueue(new Node());
-            }
         }
 
         #region Add
@@ -531,13 +527,13 @@ namespace CsNet.Collections
 
         private void Clear(Node node)
         {
-            DelNode(node); // !!!
-
             if (node.lchild != null)
                 Clear(node.lchild);
 
             if (node.rchild != null)
                 Clear(node.rchild);
+
+            DelNode(node);
         }
 
         #region Balance
@@ -950,7 +946,7 @@ namespace CsNet.Collections
 
         private Node NewNode(K key, V value, Node parent = null)
         {
-            Node node = m_cacheQueue.Count > 0 ? m_cacheQueue.Dequeue() : new Node();
+            Node node = m_nodeCache.AllocNode();
             node.key = key;
             node.value = value;
             node.parent = parent;
@@ -963,7 +959,7 @@ namespace CsNet.Collections
 
         private void DelNode(Node node)
         {
-            m_cacheQueue.Enqueue(node);
+            m_nodeCache.FreeNode(node);
         }
 
         public bool _ValidBalance()
