@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace CsNet.Util
+namespace CsNet.Collections
 {
     public class AvlTree<K, V>
     {
