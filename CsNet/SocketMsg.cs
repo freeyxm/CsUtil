@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using CsNet.Util;
 
 namespace CsNet
 {

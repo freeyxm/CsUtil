@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Net;
-using CsNet;
+using CsNet.Util;
 
 namespace CsNetServer
 {

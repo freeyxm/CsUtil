@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using CsNet;
+using CsNet.Util;
 
 namespace CsNetClient
 {

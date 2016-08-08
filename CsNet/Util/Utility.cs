@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-namespace CsNet
+namespace CsNet.Util
 {
-    class Utility
+    public class Utility
     {
         /// <summary>
         /// 结构体转byte数组
@@ -103,6 +104,20 @@ namespace CsNet
             //释放内存空间
             Marshal.FreeHGlobal(structPtr);
             //返回结构体
+            return true;
+        }
+
+        public static bool Equals<T>(IList<T> list1, IList<T> list2) where T : IComparable
+        {
+            if (list1.Count != list2.Count)
+                return false;
+
+            for (int i = 0; i < list1.Count; ++i)
+            {
+                if (list1[i].CompareTo(list2[i]) != 0)
+                    return false;
+            }
+
             return true;
         }
     }

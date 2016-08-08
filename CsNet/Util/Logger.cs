@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace CsNet
+namespace CsNet.Util
 {
     public class Logger
     {

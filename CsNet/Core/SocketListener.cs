@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Threading;
-using CsNet.Dispatcher;
+using CsNet.Util;
 
 namespace CsNet
 {
