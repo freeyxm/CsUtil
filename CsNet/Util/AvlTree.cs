@@ -49,14 +49,18 @@ namespace CsNet.Util
             m_cacheQueue = new Queue<Node>(capacity);
             m_traverseStack = new Stack<Node>();
             m_comparer = comparer ?? EqualityComparer<K>.Default;
+            for (int i = 0; i < capacity; ++i)
+            {
+                m_cacheQueue.Enqueue(new Node());
+            }
         }
 
-        #region Insert
+        #region Add
         public void Add(K key, V value)
         {
             if (m_root == null)
             {
-                m_root = NewNode(key, value, null);
+                m_root = NewNode(key, value);
             }
             else
             {
@@ -113,7 +117,7 @@ namespace CsNet.Util
                 }
             }
         }
-        #endregion Insert
+        #endregion Add
 
         #region Remove
         public bool Remove(K key)
@@ -509,7 +513,11 @@ namespace CsNet.Util
                 Clear(node.rchild);
         }
 
-        #region Rotation
+        #region Balance
+        /// <summary>
+        /// 左旋
+        /// </summary>
+        /// <param name="A"></param>
         private void LeftRotation(Node A)
         {
             Node B = A.rchild;
@@ -537,6 +545,10 @@ namespace CsNet.Util
             }
         }
 
+        /// <summary>
+        /// 右旋
+        /// </summary>
+        /// <param name="A"></param>
         private void RightRotation(Node A)
         {
             Node B = A.lchild;
@@ -564,6 +576,11 @@ namespace CsNet.Util
             }
         }
 
+        /// <summary>
+        /// 左子树升高后平衡调整
+        /// </summary>
+        /// <param name="target"></param>
+        /// <returns></returns>
         private bool LeftUpBalance(Node target)
         {
             Node lc = target.lchild;
@@ -594,7 +611,7 @@ namespace CsNet.Util
                                 target.balance = Balance.EH;
                                 break;
                             default:
-                                throw new Exception("balance invalid.");
+                                throw new Exception(string.Format("balance invalid: left up, rd {0}", rd.balance));
                         }
                         rd.balance = Balance.EH;
                         LeftRotation(lc);
@@ -602,11 +619,16 @@ namespace CsNet.Util
                     }
                     break;
                 default:
-                    throw new Exception("balance invalid.");
+                    throw new Exception(string.Format("balance invalid: left up, lc {0}", lc.balance));
             }
             return false;
         }
 
+        /// <summary>
+        /// 右子树升高后平衡调整
+        /// </summary>
+        /// <param name="target"></param>
+        /// <returns></returns>
         private bool RightUpBalance(Node target)
         {
             Node rc = target.rchild;
@@ -637,7 +659,7 @@ namespace CsNet.Util
                                 target.balance = Balance.EH;
                                 break;
                             default:
-                                throw new Exception("balance invalid.");
+                                throw new Exception(string.Format("balance invalid: right up, ld {0}", ld.balance));
                         }
                         ld.balance = Balance.EH;
                         RightRotation(rc);
@@ -645,11 +667,16 @@ namespace CsNet.Util
                     }
                     break;
                 default:
-                    throw new Exception("balance invalid.");
+                    throw new Exception(string.Format("balance invalid: right up, rc {0}", rc.balance));
             }
             return false;
         }
 
+        /// <summary>
+        /// 左子树降低后平衡调整
+        /// </summary>
+        /// <param name="target"></param>
+        /// <returns></returns>
         private bool LeftDownBalance(Node target)
         {
             bool heightChanged = false;
@@ -691,7 +718,7 @@ namespace CsNet.Util
                                 target.balance = Balance.EH;
                                 break;
                             default:
-                                throw new Exception("balance invalid.");
+                                throw new Exception(string.Format("balance invalid: left down, ld {0}", ld.balance));
                         }
                         ld.balance = Balance.EH;
                         RightRotation(rc);
@@ -700,11 +727,16 @@ namespace CsNet.Util
                     }
                     break;
                 default:
-                    throw new Exception("balance invalid.");
+                    throw new Exception(string.Format("balance invalid: left down, rc {0}", rc.balance));
             }
             return heightChanged;
         }
 
+        /// <summary>
+        /// 右子树降低后平衡调整
+        /// </summary>
+        /// <param name="target"></param>
+        /// <returns></returns>
         private bool RightDownBalance(Node target)
         {
             bool heightChanged = false;
@@ -746,7 +778,7 @@ namespace CsNet.Util
                                 target.balance = Balance.EH;
                                 break;
                             default:
-                                throw new Exception("balance invalid.");
+                                throw new Exception(string.Format("balance invalid: right down, rd {0}", rd.balance));
                         }
                         rd.balance = Balance.EH;
                         LeftRotation(lc);
@@ -755,11 +787,15 @@ namespace CsNet.Util
                     }
                     break;
                 default:
-                    throw new Exception("balance invalid.");
+                    throw new Exception(string.Format("balance invalid: right down, lc {0}", lc.balance));
             }
             return heightChanged;
         }
 
+        /// <summary>
+        /// 左子树升高后平衡检查
+        /// </summary>
+        /// <param name="target"></param>
         private void CheckLeftUp(Node target)
         {
             switch (target.balance)
@@ -768,17 +804,21 @@ namespace CsNet.Util
                     m_heightChanged = LeftUpBalance(target);
                     break;
                 case Balance.LH:
-                    m_heightChanged = true; // already true.
+                    m_heightChanged = true; // 左子树升高，高度增大
                     break;
                 case Balance.EH:
                     m_heightChanged = false;
                     break;
                 default:
                     m_heightChanged = false;
-                    throw new Exception("balance invalid.");
+                    throw new Exception(string.Format("balance invalid: left up, {0}", target.balance));
             }
         }
 
+        /// <summary>
+        /// 左子树降低后平衡检查
+        /// </summary>
+        /// <param name="target"></param>
         private void CheckLeftDown(Node target)
         {
             switch (target.balance)
@@ -794,10 +834,14 @@ namespace CsNet.Util
                     break;
                 default:
                     m_heightChanged = false;
-                    throw new Exception("balance invalid.");
+                    throw new Exception(string.Format("balance invalid: left down, {0}", target.balance));
             }
         }
 
+        /// <summary>
+        /// 右子树升高后平衡检查
+        /// </summary>
+        /// <param name="target"></param>
         private void CheckRightUp(Node target)
         {
             switch (target.balance)
@@ -806,17 +850,21 @@ namespace CsNet.Util
                     m_heightChanged = RightUpBalance(target);
                     break;
                 case Balance.RH:
-                    m_heightChanged = true; // already true.
+                    m_heightChanged = true; // 右子树升高，高度增大
                     break;
                 case Balance.EH:
                     m_heightChanged = false;
                     break;
                 default:
                     m_heightChanged = false;
-                    throw new Exception("balance invalid.");
+                    throw new Exception(string.Format("balance invalid: right up, {0}", target.balance));
             }
         }
 
+        /// <summary>
+        /// 右子树降低后平衡检查
+        /// </summary>
+        /// <param name="target"></param>
         private void CheckRightDown(Node target)
         {
             switch (target.balance)
@@ -832,10 +880,10 @@ namespace CsNet.Util
                     break;
                 default:
                     m_heightChanged = false;
-                    throw new Exception("balance invalid.");
+                    throw new Exception(string.Format("balance invalid: right down, {0}", target.balance));
             }
         }
-        #endregion Rotation
+        #endregion Balance
 
         private Node FindKey(K key)
         {
