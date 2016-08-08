@@ -27,7 +27,11 @@ namespace CsNet.Collections
         {
             Nil = new Node();
             Nil.color = Color.Black;
-            Nil.lchild = Nil.rchild = Nil.parent = null;
+            Nil.parent = null;
+            Nil.lchild = Nil.rchild = Nil;
+            Nil.key = default(K);
+            Nil.value = default(V);
+            Nil.hashCode = -1;
         }
 
         private Node m_root;
@@ -56,8 +60,7 @@ namespace CsNet.Collections
             Node z = FindKey(key);
             if (z != Nil)
             {
-                //Delete(z);
-                delete_one_child(z);
+                Delete(z);
                 return true;
             }
             return false;
@@ -191,7 +194,7 @@ namespace CsNet.Collections
                 B.lchild.parent = A;
 
             B.parent = A.parent;
-            if (A.parent == Nil)
+            if (m_root == A)
                 m_root = B;
             else if (A.parent.lchild == A)
                 A.parent.lchild = B;
@@ -211,7 +214,7 @@ namespace CsNet.Collections
                 B.rchild.parent = A;
 
             B.parent = A.parent;
-            if (A.parent == Nil)
+            if (m_root == A)
                 m_root = B;
             else if (A.parent.lchild == A)
                 A.parent.lchild = B;
@@ -250,7 +253,8 @@ namespace CsNet.Collections
                     p.rchild = n;
             }
 
-            insert_case1(n);
+            //insert_case1(n);
+            InsertFixup(n);
         }
 
         private void insert_case1(Node n)
@@ -315,37 +319,65 @@ namespace CsNet.Collections
 
         private void InsertFixup(Node n)
         {
-            while (n.parent.color == Color.Red)
+            while (true)
             {
-                if (n.parent == n.parent.parent.lchild)
+                // case 1
+                if (n.parent == Nil)
                 {
-                    Node y = n.parent.parent.rchild;
-
-                    if (y.color == Color.Red)
-                    {
-                        y.color = Color.Black;
-                        n.parent.color = Color.Black;
-                        n.parent.parent.color = Color.Red;
-                        n = n.parent.parent;
-                    }
-                    else if (n == n.parent.rchild)
-                    {
-                        n = n.parent;
-                        RotateLeft(n);
-                    }
-
-                    n.parent.color = Color.Black;
-                    n.parent.parent.color = Color.Red;
-                    RotateRight(n.parent.parent);
+                    n.color = Color.Black;
+                    break;
                 }
-            }
 
-            m_root.color = Color.Black;
+                // case 2
+                if (n.parent.color == Color.Black)
+                    break;
+
+                // case 3
+                Node u = Uncle(n);
+                if (u != Nil && u.color == Color.Red)
+                {
+                    Node g2 = Grandparent(n);
+                    n.parent.color = Color.Black;
+                    u.color = Color.Black;
+                    g2.color = Color.Red;
+                    n = g2;
+                    continue;
+                }
+
+                Node g = Grandparent(n);
+                // case 4
+                {
+                    if (n == n.parent.rchild && n.parent == g.lchild)
+                    {
+                        RotateLeft(n.parent);
+                        n = n.lchild;
+                        g = Grandparent(n);
+                    }
+                    else if (n == n.parent.lchild && n.parent == g.rchild)
+                    {
+                        RotateRight(n.parent);
+                        n = n.rchild;
+                        g = Grandparent(n);
+                    }
+                }
+
+                // case 5
+                {
+                    n.parent.color = Color.Black;
+                    g.color = Color.Red;
+                    if (n == n.parent.lchild)
+                        RotateRight(g);
+                    else
+                        RotateLeft(g);
+                }
+
+                break;
+            }
         }
         #endregion Insert
 
         #region Delete
-        private void delete_one_child(Node n)
+        private void Delete(Node n)
         {
             Node child = n.rchild == Nil ? n.lchild : n.rchild;
 
@@ -359,7 +391,11 @@ namespace CsNet.Collections
                 }
                 else
                 {
-                    delete_case1(child);
+                    if (child != Nil)
+                    {
+                        delete_case1(child);
+                        //DeleteFixup(child);
+                    }
                 }
             }
 
@@ -466,7 +502,7 @@ namespace CsNet.Collections
         private void replace_node(Node n, Node child)
         {
             child.parent = n.parent;
-            if (n.parent == Nil)
+            if (m_root == n)
                 m_root = child;
             else if (n.parent.lchild == n)
                 n.parent.lchild = child;
@@ -474,93 +510,88 @@ namespace CsNet.Collections
                 n.parent.rchild = child;
         }
 
-        private void Delete(Node z)
+        private void DeleteFixup(Node n)
         {
-            Node x = Nil;
-            Node y = z;
-            Color yColor = y.color;
+            Node s;
+            while (true)
+            {
+                // case 1
+                if (n.parent == Nil)
+                    break;
 
-            if (z.lchild == Nil)
-            {
-                x = z.rchild;
-                Transplant(z, z.rchild);
-            }
-            else if (z.rchild == Nil)
-            {
-                x = z.lchild;
-                Transplant(z, z.lchild);
-            }
-            else
-            {
-                y = Minimum(z.rchild);
-                yColor = y.color;
-                x = y.rchild;
-
-                if (y.parent == z)
+                // case 2
+                s = Sibling(n);
+                if (s.color == Color.Red)
                 {
-                    x.parent = y;
+                    s.color = Color.Black;
+                    n.parent.color = Color.Red;
+                    if (n == n.parent.lchild)
+                        RotateLeft(n.parent);
+                    else
+                        RotateRight(n.parent);
+                    s = Sibling(n);
+                }
+
+                // case 3
+                if (n.parent.color == Color.Black
+                    && s.color == Color.Black
+                    && s.lchild.color == Color.Black
+                    && s.rchild.color == Color.Black)
+                {
+                    s.color = Color.Red;
+                    n = n.parent;
+                    continue;
+                }
+
+                // case 4
+                if (n.parent.color == Color.Red
+                    && s.color == Color.Black
+                    && s.lchild.color == Color.Black
+                    && s.rchild.color == Color.Black)
+                {
+                    s.color = Color.Red;
+                    n.parent.color = Color.Black;
+                }
+
+                // case 5
+                if (s.color == Color.Black)
+                {
+                    if (n == n.parent.lchild
+                        && s.lchild.color == Color.Red
+                        && s.rchild.color == Color.Black)
+                    {
+                        s.color = Color.Red;
+                        s.lchild.color = Color.Black;
+                        RotateRight(s);
+                        s = Sibling(n);
+                    }
+                    else if (n == n.parent.rchild
+                        && s.lchild.color == Color.Black
+                        && s.rchild.color == Color.Red)
+                    {
+                        s.color = Color.Red;
+                        s.rchild.color = Color.Black;
+                        RotateLeft(s);
+                        s = Sibling(n);
+                    }
+                }
+
+                // case 6
+                s.color = n.parent.color;
+                n.parent.color = Color.Black;
+                if (n == n.parent.lchild)
+                {
+                    s.rchild.color = Color.Black;
+                    RotateLeft(n.parent);
                 }
                 else
                 {
-                    Transplant(y, y.rchild);
-                    y.rchild = z.rchild;
-                    y.rchild.parent = y;
+                    s.lchild.color = Color.Black;
+                    RotateRight(n.parent);
                 }
 
-                Transplant(z, y);
-
-                y.lchild = z.lchild;
-                y.lchild.parent = y;
-                y.color = z.color;
+                break;
             }
-
-            if (yColor == Color.Black)
-            {
-                DeleteFixup(x);
-            }
-        }
-
-        private void DeleteFixup(Node x)
-        {
-            Node w = Nil;
-
-            while (x != m_root && x.color == Color.Black)
-            {
-                if (x == x.parent.lchild)
-                {
-                    w = x.parent.rchild;
-                    if (w.color == Color.Red)
-                    {
-                        // case 1
-                        w.color = Color.Black;
-                        x.parent.color = Color.Red;
-                        RotateLeft(x.parent);
-                        w = x.parent.rchild;
-                    }
-                    if (w.lchild.color == Color.Black && w.rchild.color == Color.Black)
-                    {
-                        // case 2
-                        w.color = Color.Red;
-                        x = x.parent;
-                    }
-                    else if (w.rchild.color == Color.Black)
-                    {
-                        // case 3
-                        w.color = Color.Red;
-                        w.lchild.color = Color.Black;
-                        RotateRight(w);
-                        w = x.parent.rchild;
-                        // case 4
-                        w.color = x.parent.color;
-                        x.parent.color = Color.Black;
-                        w.rchild.color = Color.Black;
-                        RotateLeft(x.parent);
-                        x = m_root;
-                    }
-                }
-            }
-
-            x.color = Color.Black;
         }
 
         private void Transplant(Node u, Node v)
@@ -632,6 +663,11 @@ namespace CsNet.Collections
         private void DelNode(Node node)
         {
             m_nodeCache.FreeNode(node);
+        }
+
+        public int GetCacheCount()
+        {
+            return m_nodeCache.Count;
         }
     }
 }

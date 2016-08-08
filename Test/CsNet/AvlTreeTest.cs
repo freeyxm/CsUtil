@@ -120,7 +120,7 @@ namespace Test
             {
                 if (m_result[i].CompareTo(m_result[i - 1]) < 0)
                 {
-                    Debug.Assert(false, "tree broken!");
+                    Debug.Assert(false, "Tree broken!");
                     return false;
                 }
             }
@@ -206,7 +206,7 @@ namespace Test
             {
                 foreach (var k in keys)
                 {
-                    tree.Remove(k);
+                    Debug.Assert(tree.Remove(k), "Delete error.");
                 }
             });
 

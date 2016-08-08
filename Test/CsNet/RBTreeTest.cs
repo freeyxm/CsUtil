@@ -208,9 +208,11 @@ namespace Test
             {
                 foreach (var k in keys)
                 {
-                    tree.Remove(k);
+                    Debug.Assert(tree.Remove(k), "Delete error.");
                 }
             });
+
+            Console.WriteLine(tree.GetCacheCount());
 
             Console.WriteLine("Done.\n");
         }

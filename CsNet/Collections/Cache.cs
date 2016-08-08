@@ -33,5 +33,7 @@ namespace CsNet.Collections
         {
             return new T();
         }
+
+        public int Count { get { return m_cacheQueue.Count; } }
     }
 }
