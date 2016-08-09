@@ -3,23 +3,13 @@ using System.Collections.Generic;
 
 namespace CsNet.Collections
 {
-    public class AvlTree<K, V>
+    public class AvlTreeNode<K, V> : BinaryTreeNode<K, V, AvlTreeNode<K, V>>
     {
-        public delegate void TraverseActionRef(K key, ref V value);
-        public delegate void TraverseAction(K key, V value);
+        public sbyte balance;
+    }
 
-        private class Node
-        {
-            public int hashCode;
-            public K key;
-            public V value;
-            public Node parent;
-            public Node lchild;
-            public Node rchild;
-            public sbyte balance;
-            public bool marked; // 非递归遍历时使用
-        }
-
+    public class AvlTree<K, V> : BinaryTree<K, V, AvlTreeNode<K, V>>
+    {
         private class Balance
         {
             public const sbyte RR = -2;
@@ -29,16 +19,9 @@ namespace CsNet.Collections
             public const sbyte LL = 2;
         }
 
-        private Node m_root;
-
-        private Node m_newNode;
+        private AvlTreeNode<K, V> m_newNode;
         private int m_hashCode;
         private bool m_heightChanged;
-
-        private Cache<Node> m_nodeCache;
-        private Stack<Node> m_traverseStack;
-
-        private IEqualityComparer<K> m_comparer;
 
         public AvlTree(int capacity = 0)
             : this(null, capacity)
@@ -46,14 +29,11 @@ namespace CsNet.Collections
         }
 
         public AvlTree(IEqualityComparer<K> comparer, int capacity = 0)
+            : base(comparer, capacity, null)
         {
-            m_nodeCache = new Cache<Node>(capacity);
-            m_traverseStack = new Stack<Node>();
-            m_comparer = comparer ?? EqualityComparer<K>.Default;
         }
 
-        #region Add
-        public void Add(K key, V value)
+        public override void Add(K key, V value)
         {
             if (m_root == null)
             {
@@ -70,7 +50,7 @@ namespace CsNet.Collections
             }
         }
 
-        private void Add(Node target)
+        private void Add(AvlTreeNode<K, V> target)
         {
             int cmp = m_newNode.hashCode.CompareTo(target.hashCode);
             if (cmp < 0)
@@ -114,10 +94,8 @@ namespace CsNet.Collections
                 }
             }
         }
-        #endregion Add
 
-        #region Remove
-        public bool Remove(K key)
+        public override bool Remove(K key)
         {
             bool ret = false;
             if (m_root != null)
@@ -129,7 +107,8 @@ namespace CsNet.Collections
             return ret;
         }
 
-        private bool Remove(Node target)
+        #region Remove
+        private bool Remove(AvlTreeNode<K, V> target)
         {
             int cmp = m_hashCode.CompareTo(target.hashCode);
             if (cmp < 0)
@@ -194,7 +173,7 @@ namespace CsNet.Collections
             }
         }
 
-        private Node RemoveRightest(Node target)
+        private AvlTreeNode<K, V> RemoveRightest(AvlTreeNode<K, V> target)
         {
             if (target.rchild == null)
             {
@@ -214,7 +193,7 @@ namespace CsNet.Collections
             }
         }
 
-        private Node RemoveLeftest(Node target)
+        private AvlTreeNode<K, V> RemoveLeftest(AvlTreeNode<K, V> target)
         {
             if (target.lchild == null)
             {
@@ -234,43 +213,9 @@ namespace CsNet.Collections
             }
         }
 
-        private void ReplaceNode(Node from, Node to)
+        private void PromoteLeftChild(AvlTreeNode<K, V> target)
         {
-            to.lchild = from.lchild;
-            if (from.lchild != null)
-            {
-                from.lchild.parent = to;
-                from.lchild = null;
-            }
-
-            to.rchild = from.rchild;
-            if (from.rchild != null)
-            {
-                from.rchild.parent = to;
-                from.rchild = null;
-            }
-
-            to.parent = from.parent;
-            if (from.parent != null)
-            {
-                if (from.parent.lchild == from)
-                    from.parent.lchild = to;
-                else
-                    from.parent.rchild = to;
-                from.parent = null;
-            }
-
-            to.balance = from.balance;
-
-            if (m_root == from)
-            {
-                m_root = to;
-            }
-        }
-
-        private void PromoteLeftChild(Node target)
-        {
-            Node child = target.lchild;
+            var child = target.lchild;
 
             if (child != null)
             {
@@ -293,9 +238,9 @@ namespace CsNet.Collections
             }
         }
 
-        private void PromoteRightChild(Node target)
+        private void PromoteRightChild(AvlTreeNode<K, V> target)
         {
-            Node child = target.rchild;
+            var child = target.rchild;
 
             if (child != null)
             {
@@ -319,306 +264,27 @@ namespace CsNet.Collections
         }
         #endregion Remove
 
-        #region Recursive Traverse
-        public void TraversePreOrder_r(TraverseAction action)
-        {
-            if (m_root != null)
-            {
-                TraversePreOrder_r(m_root, action);
-            }
-        }
-
-        private void TraversePreOrder_r(Node node, TraverseAction action)
-        {
-            action(node.key, node.value);
-
-            if (node.lchild != null)
-                TraversePreOrder_r(node.lchild, action);
-
-            if (node.rchild != null)
-                TraversePreOrder_r(node.rchild, action);
-        }
-
-        public void TraverseInOrder_r(TraverseAction action)
-        {
-            if (m_root != null)
-            {
-                TraverseInOrder_r(m_root, action);
-            }
-        }
-
-        private void TraverseInOrder_r(Node node, TraverseAction action)
-        {
-            if (node.lchild != null)
-                TraverseInOrder_r(node.lchild, action);
-
-            action(node.key, node.value);
-
-            if (node.rchild != null)
-                TraverseInOrder_r(node.rchild, action);
-        }
-
-        public void TraversePostOrder_r(TraverseAction action)
-        {
-            if (m_root != null)
-            {
-                TraversePostOrder_r(m_root, action);
-            }
-        }
-
-        private void TraversePostOrder_r(Node node, TraverseAction action)
-        {
-            if (node.lchild != null)
-                TraversePostOrder_r(node.lchild, action);
-
-            if (node.rchild != null)
-                TraversePostOrder_r(node.rchild, action);
-
-            action(node.key, node.value);
-        }
-        #endregion Recursive Traverse
-
-        #region Non Recursive Traverse
-        public void TraversePreOrder(TraverseAction action)
-        {
-            if (m_root == null)
-                return;
-
-            Node node = m_root;
-            m_traverseStack.Clear();
-            do
-            {
-                action(node.key, node.value);
-
-                if (node.rchild != null)
-                {
-                    m_traverseStack.Push(node.rchild);
-                }
-
-                if (node.lchild != null)
-                {
-                    node = node.lchild;
-                }
-                else
-                {
-                    if (m_traverseStack.Count > 0)
-                        node = m_traverseStack.Pop();
-                    else
-                        break;
-                }
-            } while (true);
-        }
-
-        public void TraverseInOrder(TraverseAction action)
-        {
-            if (m_root == null)
-                return;
-
-            m_traverseStack.Clear();
-            PushInOrder(m_root);
-
-            Node node;
-            while (m_traverseStack.Count > 0)
-            {
-                node = m_traverseStack.Peek();
-
-                while (!node.marked)
-                {
-                    node.marked = true;
-                    if (node.lchild != null)
-                    {
-                        PushInOrder(node.lchild);
-                        node = node.lchild;
-                    }
-                }
-
-                m_traverseStack.Pop();
-                action(node.key, node.value);
-
-                if (node.rchild != null)
-                {
-                    PushInOrder(node.rchild);
-                }
-            }
-        }
-
-        private void PushInOrder(Node node)
-        {
-            node.marked = false;
-            m_traverseStack.Push(node);
-        }
-
-        public void TraversePostOrder(TraverseAction action)
-        {
-            if (m_root == null)
-                return;
-
-            m_traverseStack.Clear();
-            PushPostOrder(m_root);
-
-            Node node;
-            bool hasChild;
-            while (m_traverseStack.Count > 0)
-            {
-                node = m_traverseStack.Peek();
-                hasChild = false;
-
-                if (!node.marked)
-                {
-                    if (node.rchild != null)
-                    {
-                        PushPostOrder(node.rchild);
-                        hasChild = true;
-                    }
-                    if (node.lchild != null)
-                    {
-                        PushPostOrder(node.lchild);
-                        hasChild = true;
-                    }
-                    node.marked = true;
-                }
-
-                if (!hasChild)
-                {
-                    m_traverseStack.Pop();
-                    action(node.key, node.value);
-                }
-            }
-        }
-
-        private void PushPostOrder(Node node)
-        {
-            node.marked = false;
-            m_traverseStack.Push(node);
-        }
-        #endregion Non Recursive Traverse
-
-        public bool ContainsKey(K key)
-        {
-            return FindKey(key) != null;
-        }
-
-        public V this[K key]
-        {
-            get
-            {
-                var node = FindKey(key);
-                if (node == null)
-                    throw new KeyNotFoundException(string.Format("key {0} not found", key));
-                return node.value;
-            }
-            set
-            {
-                var node = FindKey(key);
-                if (node == null)
-                    throw new KeyNotFoundException(string.Format("key {0} not found", key));
-                node.value = value;
-            }
-        }
-
-        public void Clear()
-        {
-            if (m_root != null)
-            {
-                Clear(m_root);
-                m_root = null;
-            }
-        }
-
-        private void Clear(Node node)
-        {
-            if (node.lchild != null)
-                Clear(node.lchild);
-
-            if (node.rchild != null)
-                Clear(node.rchild);
-
-            DelNode(node);
-        }
-
         #region Balance
-        /// <summary>
-        /// 左旋
-        /// </summary>
-        /// <param name="A"></param>
-        private void LeftRotation(Node A)
-        {
-            Node B = A.rchild;
-
-            A.rchild = B.lchild;
-            if (B.lchild != null)
-            {
-                B.lchild.parent = A;
-            }
-            B.lchild = A;
-
-            B.parent = A.parent;
-            if (A.parent != null)
-            {
-                if (A.parent.lchild == A)
-                    A.parent.lchild = B;
-                else
-                    A.parent.rchild = B;
-            }
-            A.parent = B;
-
-            if (m_root == A)
-            {
-                m_root = B;
-            }
-        }
-
-        /// <summary>
-        /// 右旋
-        /// </summary>
-        /// <param name="A"></param>
-        private void RightRotation(Node A)
-        {
-            Node B = A.lchild;
-
-            A.lchild = B.rchild;
-            if (B.rchild != null)
-            {
-                B.rchild.parent = A;
-            }
-            B.rchild = A;
-
-            B.parent = A.parent;
-            if (A.parent != null)
-            {
-                if (A.parent.lchild == A)
-                    A.parent.lchild = B;
-                else
-                    A.parent.rchild = B;
-            }
-            A.parent = B;
-
-            if (m_root == A)
-            {
-                m_root = B;
-            }
-        }
-
         /// <summary>
         /// 左子树升高后平衡调整
         /// </summary>
         /// <param name="target"></param>
         /// <returns></returns>
-        private bool LeftUpBalance(Node target)
+        private bool LeftUpBalance(AvlTreeNode<K, V> target)
         {
-            Node lc = target.lchild;
+            var lc = target.lchild;
             switch (lc.balance)
             {
                 case Balance.LH:
                     {
                         lc.balance = Balance.EH;
                         target.balance = Balance.EH;
-                        RightRotation(target);
+                        RotateRight(target);
                     }
                     break;
                 case Balance.RH:
                     {
-                        Node rd = lc.rchild;
+                        var rd = lc.rchild;
                         switch (rd.balance)
                         {
                             case Balance.LH:
@@ -637,8 +303,8 @@ namespace CsNet.Collections
                                 throw new InvalidBalanceException("left up, rd", rd.balance);
                         }
                         rd.balance = Balance.EH;
-                        LeftRotation(lc);
-                        RightRotation(target);
+                        RotateLeft(lc);
+                        RotateRight(target);
                     }
                     break;
                 default:
@@ -652,21 +318,21 @@ namespace CsNet.Collections
         /// </summary>
         /// <param name="target"></param>
         /// <returns></returns>
-        private bool RightUpBalance(Node target)
+        private bool RightUpBalance(AvlTreeNode<K, V> target)
         {
-            Node rc = target.rchild;
+            var rc = target.rchild;
             switch (rc.balance)
             {
                 case Balance.RH:
                     {
                         rc.balance = Balance.EH;
                         target.balance = Balance.EH;
-                        LeftRotation(target);
+                        RotateLeft(target);
                     }
                     break;
                 case Balance.LH:
                     {
-                        Node ld = rc.lchild;
+                        var ld = rc.lchild;
                         switch (ld.balance)
                         {
                             case Balance.LH:
@@ -685,8 +351,8 @@ namespace CsNet.Collections
                                 throw new InvalidBalanceException("right up, ld", ld.balance);
                         }
                         ld.balance = Balance.EH;
-                        RightRotation(rc);
-                        LeftRotation(target);
+                        RotateRight(rc);
+                        RotateLeft(target);
                     }
                     break;
                 default:
@@ -700,18 +366,18 @@ namespace CsNet.Collections
         /// </summary>
         /// <param name="target"></param>
         /// <returns></returns>
-        private bool LeftDownBalance(Node target)
+        private bool LeftDownBalance(AvlTreeNode<K, V> target)
         {
             bool heightChanged = false;
 
-            Node rc = target.rchild;
+            var rc = target.rchild;
             switch (rc.balance)
             {
                 case Balance.EH:
                     {
                         rc.balance = Balance.LH;
                         target.balance = Balance.RH;
-                        LeftRotation(target);
+                        RotateLeft(target);
                         heightChanged = false;
                     }
                     break;
@@ -719,13 +385,13 @@ namespace CsNet.Collections
                     {
                         rc.balance = Balance.EH;
                         target.balance = Balance.EH;
-                        LeftRotation(target);
+                        RotateLeft(target);
                         heightChanged = true;
                     }
                     break;
                 case Balance.LH:
                     {
-                        Node ld = rc.lchild;
+                        var ld = rc.lchild;
                         switch (ld.balance)
                         {
                             case Balance.LH:
@@ -744,8 +410,8 @@ namespace CsNet.Collections
                                 throw new InvalidBalanceException("left down, ld", ld.balance);
                         }
                         ld.balance = Balance.EH;
-                        RightRotation(rc);
-                        LeftRotation(target);
+                        RotateRight(rc);
+                        RotateLeft(target);
                         heightChanged = true;
                     }
                     break;
@@ -760,18 +426,18 @@ namespace CsNet.Collections
         /// </summary>
         /// <param name="target"></param>
         /// <returns></returns>
-        private bool RightDownBalance(Node target)
+        private bool RightDownBalance(AvlTreeNode<K, V> target)
         {
             bool heightChanged = false;
 
-            Node lc = target.lchild;
+            var lc = target.lchild;
             switch (lc.balance)
             {
                 case Balance.EH:
                     {
                         lc.balance = Balance.RH;
                         target.balance = Balance.LH;
-                        RightRotation(target);
+                        RotateRight(target);
                         heightChanged = false;
                     }
                     break;
@@ -779,13 +445,13 @@ namespace CsNet.Collections
                     {
                         lc.balance = Balance.EH;
                         target.balance = Balance.EH;
-                        RightRotation(target);
+                        RotateRight(target);
                         heightChanged = true;
                     }
                     break;
                 case Balance.RH:
                     {
-                        Node rd = lc.rchild;
+                        var rd = lc.rchild;
                         switch (rd.balance)
                         {
                             case Balance.LH:
@@ -804,8 +470,8 @@ namespace CsNet.Collections
                                 throw new InvalidBalanceException("right down, rd", rd.balance);
                         }
                         rd.balance = Balance.EH;
-                        LeftRotation(lc);
-                        RightRotation(target);
+                        RotateLeft(lc);
+                        RotateRight(target);
                         heightChanged = true;
                     }
                     break;
@@ -819,7 +485,7 @@ namespace CsNet.Collections
         /// 左子树升高后平衡检查
         /// </summary>
         /// <param name="target"></param>
-        private void CheckLeftUp(Node target)
+        private void CheckLeftUp(AvlTreeNode<K, V> target)
         {
             switch (target.balance)
             {
@@ -842,7 +508,7 @@ namespace CsNet.Collections
         /// 左子树降低后平衡检查
         /// </summary>
         /// <param name="target"></param>
-        private void CheckLeftDown(Node target)
+        private void CheckLeftDown(AvlTreeNode<K, V> target)
         {
             switch (target.balance)
             {
@@ -865,7 +531,7 @@ namespace CsNet.Collections
         /// 右子树升高后平衡检查
         /// </summary>
         /// <param name="target"></param>
-        private void CheckRightUp(Node target)
+        private void CheckRightUp(AvlTreeNode<K, V> target)
         {
             switch (target.balance)
             {
@@ -888,7 +554,7 @@ namespace CsNet.Collections
         /// 右子树降低后平衡检查
         /// </summary>
         /// <param name="target"></param>
-        private void CheckRightDown(Node target)
+        private void CheckRightDown(AvlTreeNode<K, V> target)
         {
             switch (target.balance)
             {
@@ -906,71 +572,8 @@ namespace CsNet.Collections
                     throw new InvalidBalanceException("right down, t", target.balance);
             }
         }
-        #endregion Balance
 
-        private Node FindKey(K key)
-        {
-            Node node = m_root;
-            int hashCode = m_comparer.GetHashCode(key);
-            int cmp;
-            while (node != null)
-            {
-                cmp = hashCode.CompareTo(node.hashCode);
-                if (cmp == 0)
-                    break;
-                else if (cmp < 0)
-                    node = node.lchild;
-                else
-                    node = node.rchild;
-            }
-            return node;
-        }
-
-        private Node GetLeftestNode(Node node)
-        {
-            while (node.lchild != null)
-            {
-                node = node.lchild;
-            }
-            return node;
-        }
-
-        private Node GetRightestNode(Node node)
-        {
-            while (node.rchild != null)
-            {
-                node = node.rchild;
-            }
-            return node;
-        }
-
-        private Node NewNode(K key, V value, Node parent = null)
-        {
-            Node node = m_nodeCache.AllocNode();
-            node.key = key;
-            node.value = value;
-            node.parent = parent;
-            node.lchild = null;
-            node.rchild = null;
-            node.balance = 0;
-            node.hashCode = m_comparer.GetHashCode(key);
-            return node;
-        }
-
-        private void DelNode(Node node)
-        {
-            m_nodeCache.FreeNode(node);
-        }
-
-        public bool _ValidBalance()
-        {
-            if (m_root == null)
-                return true;
-            else
-                return _ValidBalance(m_root);
-        }
-
-        private bool _ValidBalance(Node node)
+        private bool _ValidBalance(AvlTreeNode<K, V> node)
         {
             if (node == null)
                 return true;
@@ -991,6 +594,28 @@ namespace CsNet.Collections
                 ret = _ValidBalance(node.rchild);
             }
             return ret;
+        }
+
+        public bool _ValidBalance()
+        {
+            if (m_root == null)
+                return true;
+            else
+                return _ValidBalance(m_root);
+        }
+        #endregion Balance
+
+        protected override void ReplaceNode(AvlTreeNode<K, V> from, AvlTreeNode<K, V> to)
+        {
+            base.ReplaceNode(from, to);
+            to.balance = from.balance;
+        }
+
+        protected override AvlTreeNode<K, V> NewNode(K key, V value, AvlTreeNode<K, V> parent = null)
+        {
+            var node = base.NewNode(key, value, parent);
+            node.balance = 0;
+            return node;
         }
 
         public class InvalidBalanceException : Exception

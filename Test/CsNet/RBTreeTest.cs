@@ -212,8 +212,6 @@ namespace Test
                 }
             });
 
-            Console.WriteLine(tree.GetCacheCount());
-
             Console.WriteLine("Done.\n");
         }
 

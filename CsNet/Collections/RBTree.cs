@@ -3,29 +3,23 @@ using System.Collections.Generic;
 
 namespace CsNet.Collections
 {
-    public class RBTree<K, V> : BinaryTree<K, V>
+    public class RBTreeNode<K, V> : BinaryTreeNode<K, V, RBTreeNode<K, V>>
     {
-        private enum Color
+        public RBTree<K, V>.Color color;
+    }
+
+    public class RBTree<K, V> : BinaryTree<K, V, RBTreeNode<K, V>>
+    {
+        public enum Color
         {
             Black,
             Red,
         }
 
-        private class Node
-        {
-            public K key;
-            public V value;
-            public Node parent;
-            public Node lchild;
-            public Node rchild;
-            public int hashCode;
-            public Color color;
-        }
-
-        private static Node Nil;
+        private new static RBTreeNode<K, V> Nil;
         static RBTree()
         {
-            Nil = new Node();
+            Nil = new RBTreeNode<K, V>();
             Nil.color = Color.Black;
             Nil.parent = null;
             Nil.lchild = Nil.rchild = Nil;
@@ -34,20 +28,14 @@ namespace CsNet.Collections
             Nil.hashCode = -1;
         }
 
-        private Node m_root;
-        private Cache<Node> m_nodeCache;
-        private IEqualityComparer<K> m_comparer;
-
         public RBTree(int capacity = 0)
             : this(null, capacity)
         {
         }
 
         public RBTree(IEqualityComparer<K> comparer, int capacity = 0)
+            : base(comparer, capacity, Nil)
         {
-            m_root = Nil;
-            m_comparer = comparer ?? EqualityComparer<K>.Default;
-            m_nodeCache = new Cache<Node>(capacity);
         }
 
         public override void Add(K key, V value)
@@ -57,7 +45,7 @@ namespace CsNet.Collections
 
         public override bool Remove(K key)
         {
-            Node z = FindKey(key);
+            var z = FindKey(key);
             if (z != Nil)
             {
                 Delete(z);
@@ -66,170 +54,11 @@ namespace CsNet.Collections
             return false;
         }
 
-        public override bool ContainsKey(K key)
-        {
-            return FindKey(key) != Nil;
-        }
-
-        public override V this[K key]
-        {
-            get
-            {
-                var node = FindKey(key);
-                if (node == Nil)
-                    throw new KeyNotFoundException(string.Format("key {0} not found", key));
-                return node.value;
-            }
-            set
-            {
-                var node = FindKey(key);
-                if (node == Nil)
-                    throw new KeyNotFoundException(string.Format("key {0} not found", key));
-                node.value = value;
-            }
-        }
-
-        public override void Clear()
-        {
-            if (m_root != Nil)
-            {
-                Clear(m_root);
-                m_root = Nil;
-            }
-        }
-
-        private void Clear(Node node)
-        {
-            if (node.lchild != Nil)
-                Clear(node.lchild as Node);
-
-            if (node.rchild != Nil)
-                Clear(node.rchild as Node);
-
-            DelNode(node);
-        }
-
-        #region Recursive Traverse
-        public override void TraversePreOrder_r(TraverseAction action)
-        {
-            if (m_root != Nil)
-            {
-                TraversePreOrder_r(m_root, action);
-            }
-        }
-
-        private void TraversePreOrder_r(Node node, TraverseAction action)
-        {
-            action(node.key, node.value);
-
-            if (node.lchild != Nil)
-                TraversePreOrder_r(node.lchild, action);
-
-            if (node.rchild != Nil)
-                TraversePreOrder_r(node.rchild, action);
-        }
-
-        public override void TraverseInOrder_r(TraverseAction action)
-        {
-            if (m_root != Nil)
-            {
-                TraverseInOrder_r(m_root, action);
-            }
-        }
-
-        private void TraverseInOrder_r(Node node, TraverseAction action)
-        {
-            if (node.lchild != Nil)
-                TraverseInOrder_r(node.lchild, action);
-
-            action(node.key, node.value);
-
-            if (node.rchild != Nil)
-                TraverseInOrder_r(node.rchild, action);
-        }
-
-        public override void TraversePostOrder_r(TraverseAction action)
-        {
-            if (m_root != Nil)
-            {
-                TraversePostOrder_r(m_root, action);
-            }
-        }
-
-        private void TraversePostOrder_r(Node node, TraverseAction action)
-        {
-            if (node.lchild != Nil)
-                TraversePostOrder_r(node.lchild, action);
-
-            if (node.rchild != Nil)
-                TraversePostOrder_r(node.rchild, action);
-
-            action(node.key, node.value);
-        }
-        #endregion Recursive Traverse
-
-        private Node FindKey(K key)
-        {
-            int hashCode = m_comparer.GetHashCode(key);
-            Node node = m_root;
-            while (node != Nil)
-            {
-                int cmp = hashCode.CompareTo(node.hashCode);
-                if (cmp < 0)
-                    node = node.lchild;
-                else if (cmp > 0)
-                    node = node.rchild;
-                else
-                    break;
-            }
-            return node;
-        }
-
-        private void RotateLeft(Node A)
-        {
-            Node B = A.rchild;
-
-            A.rchild = B.lchild;
-            if (B.lchild != Nil)
-                B.lchild.parent = A;
-
-            B.parent = A.parent;
-            if (m_root == A)
-                m_root = B;
-            else if (A.parent.lchild == A)
-                A.parent.lchild = B;
-            else
-                A.parent.rchild = B;
-
-            B.lchild = A;
-            A.parent = B;
-        }
-
-        private void RotateRight(Node A)
-        {
-            Node B = A.lchild;
-
-            A.lchild = B.rchild;
-            if (B.rchild != Nil)
-                B.rchild.parent = A;
-
-            B.parent = A.parent;
-            if (m_root == A)
-                m_root = B;
-            else if (A.parent.lchild == A)
-                A.parent.lchild = B;
-            else
-                A.parent.rchild = B;
-
-            B.rchild = A;
-            A.parent = B;
-        }
-
         #region Insert
-        private void Insert(Node n)
+        private void Insert(RBTreeNode<K, V> n)
         {
-            Node tmp = m_root;
-            Node p = Nil;
+            var tmp = m_root;
+            var p = Nil;
 
             while (tmp != Nil)
             {
@@ -257,7 +86,7 @@ namespace CsNet.Collections
             InsertFixup(n);
         }
 
-        private void insert_case1(Node n)
+        private void insert_case1(RBTreeNode<K, V> n)
         {
             if (n.parent == Nil)
                 n.color = Color.Black;
@@ -265,7 +94,7 @@ namespace CsNet.Collections
                 insert_case2(n);
         }
 
-        private void insert_case2(Node n)
+        private void insert_case2(RBTreeNode<K, V> n)
         {
             if (n.parent.color == Color.Black)
                 return;
@@ -273,12 +102,12 @@ namespace CsNet.Collections
                 insert_case3(n);
         }
 
-        private void insert_case3(Node n)
+        private void insert_case3(RBTreeNode<K, V> n)
         {
-            Node u = Uncle(n);
+            var u = Uncle(n);
             if (u != Nil && u.color == Color.Red)
             {
-                Node g2 = Grandparent(n);
+                var g2 = Grandparent(n);
                 n.parent.color = Color.Black;
                 u.color = Color.Black;
                 g2.color = Color.Red;
@@ -290,9 +119,9 @@ namespace CsNet.Collections
             }
         }
 
-        private void insert_case4(Node n)
+        private void insert_case4(RBTreeNode<K, V> n)
         {
-            Node g = Grandparent(n);
+            var g = Grandparent(n);
             if (n == n.parent.rchild && n.parent == g.lchild)
             {
                 RotateLeft(n.parent);
@@ -306,9 +135,9 @@ namespace CsNet.Collections
             insert_case5(n);
         }
 
-        private void insert_case5(Node n)
+        private void insert_case5(RBTreeNode<K, V> n)
         {
-            Node g = Grandparent(n);
+            var g = Grandparent(n);
             n.parent.color = Color.Black;
             g.color = Color.Red;
             if (n == n.parent.lchild)
@@ -317,7 +146,7 @@ namespace CsNet.Collections
                 RotateLeft(g);
         }
 
-        private void InsertFixup(Node n)
+        private void InsertFixup(RBTreeNode<K, V> n)
         {
             while (true)
             {
@@ -333,10 +162,10 @@ namespace CsNet.Collections
                     break;
 
                 // case 3
-                Node u = Uncle(n);
+                var u = Uncle(n);
                 if (u != Nil && u.color == Color.Red)
                 {
-                    Node g2 = Grandparent(n);
+                    var g2 = Grandparent(n);
                     n.parent.color = Color.Black;
                     u.color = Color.Black;
                     g2.color = Color.Red;
@@ -344,7 +173,7 @@ namespace CsNet.Collections
                     continue;
                 }
 
-                Node g = Grandparent(n);
+                var g = Grandparent(n);
                 // case 4
                 {
                     if (n == n.parent.rchild && n.parent == g.lchild)
@@ -377,9 +206,9 @@ namespace CsNet.Collections
         #endregion Insert
 
         #region Delete
-        private void Delete(Node n)
+        private void Delete(RBTreeNode<K, V> n)
         {
-            Node child = n.rchild == Nil ? n.lchild : n.rchild;
+            var child = n.rchild == Nil ? n.lchild : n.rchild;
 
             replace_node(n, child);
 
@@ -402,15 +231,15 @@ namespace CsNet.Collections
             DelNode(n);
         }
 
-        private void delete_case1(Node n)
+        private void delete_case1(RBTreeNode<K, V> n)
         {
             if (n.parent != Nil)
                 delete_case2(n);
         }
 
-        private void delete_case2(Node n)
+        private void delete_case2(RBTreeNode<K, V> n)
         {
-            Node s = Sibling(n);
+            var s = Sibling(n);
             if (s.color == Color.Red)
             {
                 s.color = Color.Black;
@@ -423,9 +252,9 @@ namespace CsNet.Collections
             delete_case3(n);
         }
 
-        private void delete_case3(Node n)
+        private void delete_case3(RBTreeNode<K, V> n)
         {
-            Node s = Sibling(n);
+            var s = Sibling(n);
             if (n.parent.color == Color.Black
                 && s.color == Color.Black
                 && s.lchild.color == Color.Black
@@ -440,9 +269,9 @@ namespace CsNet.Collections
             }
         }
 
-        private void delete_case4(Node n)
+        private void delete_case4(RBTreeNode<K, V> n)
         {
-            Node s = Sibling(n);
+            var s = Sibling(n);
             if (n.parent.color == Color.Red
                 && s.color == Color.Black
                 && s.lchild.color == Color.Black
@@ -457,9 +286,9 @@ namespace CsNet.Collections
             }
         }
 
-        private void delete_case5(Node n)
+        private void delete_case5(RBTreeNode<K, V> n)
         {
-            Node s = Sibling(n);
+            var s = Sibling(n);
             if (s.color == Color.Black)
             {
                 if (n == n.parent.lchild
@@ -482,9 +311,9 @@ namespace CsNet.Collections
             delete_case6(n);
         }
 
-        private void delete_case6(Node n)
+        private void delete_case6(RBTreeNode<K, V> n)
         {
-            Node s = Sibling(n);
+            var s = Sibling(n);
             s.color = n.parent.color;
             n.parent.color = Color.Black;
             if (n == n.parent.lchild)
@@ -499,7 +328,7 @@ namespace CsNet.Collections
             }
         }
 
-        private void replace_node(Node n, Node child)
+        private void replace_node(RBTreeNode<K, V> n, RBTreeNode<K, V> child)
         {
             child.parent = n.parent;
             if (m_root == n)
@@ -510,9 +339,9 @@ namespace CsNet.Collections
                 n.parent.rchild = child;
         }
 
-        private void DeleteFixup(Node n)
+        private void DeleteFixup(RBTreeNode<K, V> n)
         {
-            Node s;
+            RBTreeNode<K, V> s;
             while (true)
             {
                 // case 1
@@ -594,7 +423,7 @@ namespace CsNet.Collections
             }
         }
 
-        private void Transplant(Node u, Node v)
+        private void Transplant(RBTreeNode<K, V> u, RBTreeNode<K, V> v)
         {
             if (u == Nil)
                 m_root = v;
@@ -606,7 +435,7 @@ namespace CsNet.Collections
             v.parent = u.parent;
         }
 
-        private Node Minimum(Node z)
+        private RBTreeNode<K, V> Minimum(RBTreeNode<K, V> z)
         {
             while (z.lchild != Nil)
             {
@@ -617,7 +446,7 @@ namespace CsNet.Collections
         #endregion Delete
 
         #region Kinship
-        private Node Grandparent(Node n)
+        private RBTreeNode<K, V> Grandparent(RBTreeNode<K, V> n)
         {
             if (n.parent == Nil)
                 return Nil;
@@ -625,9 +454,9 @@ namespace CsNet.Collections
                 return n.parent.parent;
         }
 
-        private Node Uncle(Node n)
+        private RBTreeNode<K, V> Uncle(RBTreeNode<K, V> n)
         {
-            Node g = Grandparent(n);
+            var g = Grandparent(n);
             if (g == Nil)
                 return Nil;
             if (g.lchild == n.parent)
@@ -636,7 +465,7 @@ namespace CsNet.Collections
                 return g.lchild;
         }
 
-        private Node Sibling(Node n)
+        private RBTreeNode<K, V> Sibling(RBTreeNode<K, V> n)
         {
             if (n.parent == Nil)
                 return Nil;
@@ -647,27 +476,11 @@ namespace CsNet.Collections
         }
         #endregion Kinship
 
-        private Node NewNode(K key, V value, Node parent)
+        protected override RBTreeNode<K, V> NewNode(K key, V value, RBTreeNode<K, V> parent)
         {
-            Node node = m_nodeCache.AllocNode();
-            node.key = key;
-            node.value = value;
-            node.parent = parent;
-            node.lchild = Nil;
-            node.rchild = Nil;
+            var node = base.NewNode(key, value, parent);
             node.color = Color.Red;
-            node.hashCode = m_comparer.GetHashCode(key);
             return node;
-        }
-
-        private void DelNode(Node node)
-        {
-            m_nodeCache.FreeNode(node);
-        }
-
-        public int GetCacheCount()
-        {
-            return m_nodeCache.Count;
         }
     }
 }
