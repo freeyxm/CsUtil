@@ -45,10 +45,10 @@ namespace CsNet.Collections
 
         public override bool Remove(K key)
         {
-            var z = FindKey(key);
-            if (z != Nil)
+            var node = FindKey(key);
+            if (node != Nil)
             {
-                Delete(z);
+                Delete(node);
                 return true;
             }
             return false;
@@ -86,6 +86,7 @@ namespace CsNet.Collections
             InsertFixup(n);
         }
 
+        #region insert fix up (recursive)
         private void insert_case1(RBTreeNode<K, V> n)
         {
             if (n.parent == Nil)
@@ -145,6 +146,7 @@ namespace CsNet.Collections
             else
                 RotateLeft(g);
         }
+        #endregion insert fix up (recursive)
 
         private void InsertFixup(RBTreeNode<K, V> n)
         {
@@ -231,6 +233,7 @@ namespace CsNet.Collections
             DelNode(n);
         }
 
+        #region delete fix up (recursive)
         private void delete_case1(RBTreeNode<K, V> n)
         {
             if (n.parent != Nil)
@@ -327,6 +330,7 @@ namespace CsNet.Collections
                 RotateRight(n.parent);
             }
         }
+        #endregion delete fix up (recursive)
 
         private void replace_node(RBTreeNode<K, V> n, RBTreeNode<K, V> child)
         {

@@ -14,7 +14,7 @@ namespace CsNet.Collections
         public bool marked; // used by non recursive traversal.
     }
 
-    public abstract class BinaryTree<K, V, Node> where Node : BinaryTreeNode<K, V, Node>, new()
+    public abstract class BinaryTree<K, V, Node> : IBinaryTree<K, V> where Node : BinaryTreeNode<K, V, Node>, new()
     {
         protected Node m_root;
         protected Node Nil; // null node.
@@ -85,12 +85,8 @@ namespace CsNet.Collections
             DelNode(node);
         }
 
-        #region Traverse
-        public delegate void TraverseActionRef(K key, ref V value);
-        public delegate void TraverseAction(K key, V value);
-
         #region Recursive Traverse
-        public virtual void TraversePreOrder_r(TraverseAction action)
+        public virtual void TraversePreOrder_r(Action<K, V> action)
         {
             if (m_root != Nil)
             {
@@ -98,7 +94,7 @@ namespace CsNet.Collections
             }
         }
 
-        public virtual void TraverseInOrder_r(TraverseAction action)
+        public virtual void TraverseInOrder_r(Action<K, V> action)
         {
             if (m_root != Nil)
             {
@@ -106,7 +102,7 @@ namespace CsNet.Collections
             }
         }
 
-        public virtual void TraversePostOrder_r(TraverseAction action)
+        public virtual void TraversePostOrder_r(Action<K, V> action)
         {
             if (m_root != Nil)
             {
@@ -114,7 +110,7 @@ namespace CsNet.Collections
             }
         }
 
-        private void TraversePreOrder_r(BinaryTreeNode<K, V, Node> node, TraverseAction action)
+        private void TraversePreOrder_r(Node node, Action<K, V> action)
         {
             action(node.key, node.value);
 
@@ -125,7 +121,7 @@ namespace CsNet.Collections
                 TraversePreOrder_r(node.rchild, action);
         }
 
-        private void TraverseInOrder_r(BinaryTreeNode<K, V, Node> node, TraverseAction action)
+        private void TraverseInOrder_r(Node node, Action<K, V> action)
         {
             if (node.lchild != Nil)
                 TraverseInOrder_r(node.lchild, action);
@@ -136,7 +132,7 @@ namespace CsNet.Collections
                 TraverseInOrder_r(node.rchild, action);
         }
 
-        private void TraversePostOrder_r(BinaryTreeNode<K, V, Node> node, TraverseAction action)
+        private void TraversePostOrder_r(Node node, Action<K, V> action)
         {
             if (node.lchild != Nil)
                 TraversePostOrder_r(node.lchild, action);
@@ -149,7 +145,7 @@ namespace CsNet.Collections
         #endregion Recursive Traverse
 
         #region Non Recursive Traverse
-        public virtual void TraversePreOrder(TraverseAction action)
+        public virtual void TraversePreOrder(Action<K, V> action)
         {
             if (m_root == Nil)
                 return;
@@ -179,7 +175,7 @@ namespace CsNet.Collections
             } while (true);
         }
 
-        public virtual void TraverseInOrder(TraverseAction action)
+        public virtual void TraverseInOrder(Action<K, V> action)
         {
             if (m_root == Nil)
                 return;
@@ -212,7 +208,7 @@ namespace CsNet.Collections
             }
         }
 
-        public virtual void TraversePostOrder(TraverseAction action)
+        public virtual void TraversePostOrder(Action<K, V> action)
         {
             if (m_root == Nil)
                 return;
@@ -262,7 +258,6 @@ namespace CsNet.Collections
             m_traverseStack.Push(node);
         }
         #endregion Non Recursive Traverse
-        #endregion Traverse
 
         protected virtual void RotateLeft(Node A)
         {

@@ -60,7 +60,6 @@ namespace Test
             // 校验
             ValidTree(tree);
 
-            /*
             // 校验前序
             Console.WriteLine("Valid PreOrder ...");
             m_result = m_result1;
@@ -90,7 +89,6 @@ namespace Test
             m_result.Clear();
             tree.TraversePostOrder(Traverse);
             Debug.Assert(Utility.Equals(m_result1, m_result2), "Valid PostOrder failed!");
-            */
 
             // 校验删除
             Console.WriteLine("Valid Remove ...");
