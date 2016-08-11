@@ -181,7 +181,7 @@ namespace CsNet.Collections
                 return;
 
             m_traverseStack.Clear();
-            PushInOrder(m_root as Node);
+            PushInOrder(m_root);
 
             Node node;
             while (m_traverseStack.Count > 0)
@@ -214,7 +214,7 @@ namespace CsNet.Collections
                 return;
 
             m_traverseStack.Clear();
-            PushPostOrder(m_root as Node);
+            PushPostOrder(m_root);
 
             Node node;
             bool hasChild;
