@@ -33,7 +33,7 @@ namespace CsNet.Collections
         {
         }
 
-        public override void Add(K key, V value)
+        protected override bool Insert(K key, V value)
         {
             if (m_root == null)
             {
@@ -44,13 +44,14 @@ namespace CsNet.Collections
                 m_heightChanged = false;
                 m_newNode = NewNode(key, value);
 
-                Add(m_root);
+                Insert(m_root);
 
                 m_newNode = null;
             }
+            return true;
         }
 
-        private void Add(AvlTreeNode<K, V> target)
+        private void Insert(AvlTreeNode<K, V> target)
         {
             int cmp = m_newNode.hashCode.CompareTo(target.hashCode);
             if (cmp < 0)
@@ -65,7 +66,7 @@ namespace CsNet.Collections
                 }
                 else
                 {
-                    Add(target.lchild);
+                    Insert(target.lchild);
                     if (m_heightChanged)
                     {
                         target.balance++;
@@ -85,7 +86,7 @@ namespace CsNet.Collections
                 }
                 else
                 {
-                    Add(target.rchild);
+                    Insert(target.rchild);
                     if (m_heightChanged)
                     {
                         target.balance--;
@@ -95,27 +96,26 @@ namespace CsNet.Collections
             }
         }
 
-        public override bool Remove(K key)
+        protected override bool Delete(K key)
         {
             bool ret = false;
             if (m_root != null)
             {
                 m_heightChanged = false;
                 m_hashCode = m_comparer.GetHashCode(key);
-                ret = Remove(m_root);
+                ret = Delete(m_root);
             }
             return ret;
         }
 
-        #region Remove
-        private bool Remove(AvlTreeNode<K, V> target)
+        private bool Delete(AvlTreeNode<K, V> target)
         {
             int cmp = m_hashCode.CompareTo(target.hashCode);
             if (cmp < 0)
             {
                 if (target.lchild == null)
                     return false;
-                bool ret = Remove(target.lchild);
+                bool ret = Delete(target.lchild);
                 if (ret && m_heightChanged)
                 {
                     target.balance--;
@@ -127,7 +127,7 @@ namespace CsNet.Collections
             {
                 if (target.rchild == null)
                     return false;
-                bool ret = Remove(target.rchild);
+                bool ret = Delete(target.rchild);
                 if (ret && m_heightChanged)
                 {
                     target.balance++;
@@ -149,7 +149,7 @@ namespace CsNet.Collections
                 }
                 else if (target.balance == Balance.LH) // 从较高的子树上选择替换节点
                 {
-                    var toDel = RemoveRightest(target.lchild);
+                    var toDel = DeleteRightest(target.lchild);
                     UpdateNode(target, toDel);
                     if (m_heightChanged)
                     {
@@ -160,7 +160,7 @@ namespace CsNet.Collections
                 }
                 else
                 {
-                    var toDel = RemoveLeftest(target.rchild);
+                    var toDel = DeleteLeftest(target.rchild);
                     UpdateNode(target, toDel);
                     if (m_heightChanged)
                     {
@@ -175,7 +175,7 @@ namespace CsNet.Collections
             }
         }
 
-        private AvlTreeNode<K, V> RemoveRightest(AvlTreeNode<K, V> target)
+        private AvlTreeNode<K, V> DeleteRightest(AvlTreeNode<K, V> target)
         {
             if (target.rchild == null)
             {
@@ -185,7 +185,7 @@ namespace CsNet.Collections
             }
             else
             {
-                var node = RemoveRightest(target.rchild);
+                var node = DeleteRightest(target.rchild);
                 if (m_heightChanged)
                 {
                     target.balance++;
@@ -195,7 +195,7 @@ namespace CsNet.Collections
             }
         }
 
-        private AvlTreeNode<K, V> RemoveLeftest(AvlTreeNode<K, V> target)
+        private AvlTreeNode<K, V> DeleteLeftest(AvlTreeNode<K, V> target)
         {
             if (target.lchild == null)
             {
@@ -205,7 +205,7 @@ namespace CsNet.Collections
             }
             else
             {
-                var node = RemoveLeftest(target.lchild);
+                var node = DeleteLeftest(target.lchild);
                 if (m_heightChanged)
                 {
                     target.balance--;
@@ -214,7 +214,6 @@ namespace CsNet.Collections
                 return node;
             }
         }
-        #endregion Remove
 
         #region Balance
         /// <summary>

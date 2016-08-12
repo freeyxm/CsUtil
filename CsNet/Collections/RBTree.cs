@@ -21,7 +21,7 @@ namespace CsNet.Collections
         {
             Nil = new RBTreeNode<K, V>();
             Nil.color = Color.Black;
-            Nil.parent = null;
+            Nil.parent = Nil;
             Nil.lchild = Nil.rchild = Nil;
             Nil.key = default(K);
             Nil.value = default(V);
@@ -38,12 +38,13 @@ namespace CsNet.Collections
         {
         }
 
-        public override void Add(K key, V value)
+        protected override bool Insert(K key, V value)
         {
             Insert(NewNode(key, value, Nil));
+            return true;
         }
 
-        public override bool Remove(K key)
+        protected override bool Delete(K key)
         {
             var node = FindKey(key);
             if (node != Nil)
@@ -208,29 +209,46 @@ namespace CsNet.Collections
         #endregion Insert
 
         #region Delete
-        private void Delete(RBTreeNode<K, V> n)
+        private void Delete(RBTreeNode<K, V> target)
         {
-            var child = n.rchild == Nil ? n.lchild : n.rchild;
-
-            replace_node(n, child);
-
-            if (n.color == Color.Black)
+            var toDel = Nil;
+            var toFix = Nil;
+            if (target.lchild != Nil && target.rchild != Nil)
             {
-                if (child.color == Color.Red)
+                toDel = GetLeftestNode(target.rchild);
+                target.key = toDel.key;
+                target.value = toDel.value;
+                target.hashCode = toDel.hashCode;
+                toFix = toDel.rchild;
+                PromoteRightChild(toDel);
+            }
+            else if (target.lchild != Nil)
+            {
+                toDel = target;
+                toFix = target.lchild;
+                PromoteLeftChild(target);
+            }
+            else
+            {
+                toDel = target;
+                toFix = target.rchild;
+                PromoteRightChild(target);
+            }
+
+            if (toDel.color == Color.Black)
+            {
+                if (toFix.color == Color.Red)
                 {
-                    child.color = Color.Black;
+                    toFix.color = Color.Black;
                 }
                 else
                 {
-                    if (child != Nil)
-                    {
-                        delete_case1(child);
-                        //DeleteFixup(child);
-                    }
+                    delete_case1(toFix);
+                    //DeleteFixup(toFix);
                 }
             }
 
-            DelNode(n);
+            DelNode(toDel);
         }
 
         #region delete fix up (recursive)
@@ -331,17 +349,6 @@ namespace CsNet.Collections
             }
         }
         #endregion delete fix up (recursive)
-
-        private void replace_node(RBTreeNode<K, V> n, RBTreeNode<K, V> child)
-        {
-            child.parent = n.parent;
-            if (m_root == n)
-                m_root = child;
-            else if (n.parent.lchild == n)
-                n.parent.lchild = child;
-            else
-                n.parent.rchild = child;
-        }
 
         private void DeleteFixup(RBTreeNode<K, V> n)
         {

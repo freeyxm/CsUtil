@@ -204,10 +204,14 @@ namespace Test
 
             TestUtility.RunTime("Delete", watch, () =>
             {
+                int dcount = 0;
                 foreach (var k in keys)
                 {
-                    Debug.Assert(tree.Remove(k), "Delete error.");
+                    if (tree.Remove(k))
+                        ++dcount;
+                    //Debug.Assert(tree.Remove(k), "Delete error.");
                 }
+                Console.Write(" {0},", dcount);
             });
 
             Console.WriteLine("Done.\n");

@@ -21,6 +21,7 @@ namespace CsNet.Collections
         protected IEqualityComparer<K> m_comparer;
         private Cache<Node> m_nodeCache;
         private Stack<Node> m_traverseStack; // used by non recursive traversal.
+        private int m_count;
 
         public BinaryTree(IEqualityComparer<K> comparer, int capacity, Node nil)
         {
@@ -32,15 +33,32 @@ namespace CsNet.Collections
             {
                 m_nodeCache.FreeNode(new Node());
             }
+            m_count = 0;
         }
 
         private BinaryTree()
         {
         }
 
-        public abstract void Add(K key, V value);
+        public virtual bool Add(K key, V value)
+        {
+            bool ret = Insert(key, value);
+            if (ret)
+            {
+                ++m_count;
+            }
+            return ret;
+        }
 
-        public abstract bool Remove(K key);
+        public virtual bool Remove(K key)
+        {
+            bool ret = Delete(key);
+            if (ret)
+            {
+                --m_count;
+            }
+            return ret;
+        }
 
         public virtual bool ContainsKey(K key)
         {
@@ -84,6 +102,8 @@ namespace CsNet.Collections
 
             DelNode(node);
         }
+
+        public virtual int Count { get { return m_count; } }
 
         #region Recursive Traverse
         public virtual void TraversePreOrder_r(Action<K, V> action)
@@ -258,6 +278,10 @@ namespace CsNet.Collections
             m_traverseStack.Push(node);
         }
         #endregion Non Recursive Traverse
+
+        protected abstract bool Insert(K key, V value);
+
+        protected abstract bool Delete(K key);
 
         protected virtual void RotateLeft(Node A)
         {
