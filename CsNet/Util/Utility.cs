@@ -120,5 +120,16 @@ namespace CsNet.Util
 
             return true;
         }
+
+        public static void RandomOrder<T>(IList<T> list, Random random)
+        {
+            for (int i = list.Count - 1; i >= 0; --i)
+            {
+                int index = random.Next(0, i + 1);
+                T tmp = list[i];
+                list[i] = list[index];
+                list[index] = tmp;
+            }
+        }
     }
 }

@@ -23,7 +23,12 @@ namespace CsNet.Collections
         private int m_hashCode;
         private bool m_heightChanged;
 
-        public AvlTree(int capacity = 0)
+        public AvlTree()
+            : this(null, 0)
+        {
+        }
+
+        public AvlTree(int capacity)
             : this(null, capacity)
         {
         }

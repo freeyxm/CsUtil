@@ -28,7 +28,12 @@ namespace CsNet.Collections
             Nil.hashCode = -1;
         }
 
-        public RBTree(int capacity = 0)
+        public RBTree()
+            : this(null, 0)
+        {
+        }
+
+        public RBTree(int capacity)
             : this(null, capacity)
         {
         }

@@ -1,5 +1,5 @@
 ﻿using System;
-using CsNet.Util;
+using CsNet.Collections;
 
 namespace Test
 {
@@ -7,11 +7,11 @@ namespace Test
     {
         static void Main(string[] args)
         {
-            //AvlTreeTest test = new AvlTreeTest();
+            //var test = new AvlTreeTest();
             //test.TestValidity();
             //test.TestPerformace();
 
-            RBTreeTest test2 = new RBTreeTest();
+            var test2 = new RBTreeTest();
             test2.TestValidity();
             test2.TestPerformace();
 

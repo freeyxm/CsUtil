@@ -2,7 +2,7 @@
 
 namespace CsNet.Collections
 {
-    interface IBinaryTree<K, V>
+    public interface IBinaryTree<K, V>
     {
         bool Add(K key, V value);
         bool Remove(K key);
