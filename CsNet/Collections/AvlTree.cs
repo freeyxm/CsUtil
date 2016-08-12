@@ -149,23 +149,25 @@ namespace CsNet.Collections
                 }
                 else if (target.balance == Balance.LH) // 从较高的子树上选择替换节点
                 {
-                    var node = RemoveRightest(target.lchild);
-                    ReplaceNode(target, node);
+                    var toDel = RemoveRightest(target.lchild);
+                    UpdateNode(target, toDel);
                     if (m_heightChanged)
                     {
-                        node.balance--;
-                        CheckLeftDown(node);
+                        target.balance--;
+                        CheckLeftDown(target);
                     }
+                    target = toDel;
                 }
                 else
                 {
-                    var node = RemoveLeftest(target.rchild);
-                    ReplaceNode(target, node);
+                    var toDel = RemoveLeftest(target.rchild);
+                    UpdateNode(target, toDel);
                     if (m_heightChanged)
                     {
-                        node.balance++;
-                        CheckRightDown(node);
+                        target.balance++;
+                        CheckRightDown(target);
                     }
+                    target = toDel;
                 }
 
                 DelNode(target);
@@ -210,56 +212,6 @@ namespace CsNet.Collections
                     CheckLeftDown(target);
                 }
                 return node;
-            }
-        }
-
-        private void PromoteLeftChild(AvlTreeNode<K, V> target)
-        {
-            var child = target.lchild;
-
-            if (child != null)
-            {
-                child.parent = target.parent;
-                target.lchild = null;
-            }
-
-            if (target.parent != null)
-            {
-                if (target.parent.lchild == target)
-                    target.parent.lchild = child;
-                else
-                    target.parent.rchild = child;
-                target.parent = null;
-            }
-
-            if (m_root == target)
-            {
-                m_root = child;
-            }
-        }
-
-        private void PromoteRightChild(AvlTreeNode<K, V> target)
-        {
-            var child = target.rchild;
-
-            if (child != null)
-            {
-                child.parent = target.parent;
-                target.rchild = null;
-            }
-
-            if (target.parent != null)
-            {
-                if (target.parent.lchild == target)
-                    target.parent.lchild = child;
-                else
-                    target.parent.rchild = child;
-                target.parent = null;
-            }
-
-            if (m_root == target)
-            {
-                m_root = child;
             }
         }
         #endregion Remove
@@ -604,12 +556,6 @@ namespace CsNet.Collections
                 return _ValidBalance(m_root);
         }
         #endregion Balance
-
-        protected override void ReplaceNode(AvlTreeNode<K, V> from, AvlTreeNode<K, V> to)
-        {
-            base.ReplaceNode(from, to);
-            to.balance = from.balance;
-        }
 
         protected override AvlTreeNode<K, V> NewNode(K key, V value, AvlTreeNode<K, V> parent = null)
         {

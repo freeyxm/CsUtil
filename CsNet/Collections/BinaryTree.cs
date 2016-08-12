@@ -333,30 +333,61 @@ namespace CsNet.Collections
             return node;
         }
 
-        protected virtual void ReplaceNode(Node from, Node to)
+        protected virtual void PromoteLeftChild(Node target)
         {
-            to.lchild = from.lchild;
-            if (from.lchild != Nil)
+            var child = target.lchild;
+
+            if (child != Nil)
             {
-                from.lchild.parent = to;
-                from.lchild = Nil;
+                child.parent = target.parent;
+                target.lchild = Nil;
             }
 
-            to.rchild = from.rchild;
-            if (from.rchild != Nil)
+            if (target.parent != Nil)
             {
-                from.rchild.parent = to;
-                from.rchild = Nil;
+                if (target.parent.lchild == target)
+                    target.parent.lchild = child;
+                else
+                    target.parent.rchild = child;
+                target.parent = Nil;
             }
 
-            to.parent = from.parent;
-            if (m_root == from)
-                m_root = to;
-            else if (from.parent.lchild == from)
-                from.parent.lchild = to;
-            else
-                from.parent.rchild = to;
-            from.parent = Nil;
+            if (m_root == target)
+            {
+                m_root = child;
+            }
+        }
+
+        protected virtual void PromoteRightChild(Node target)
+        {
+            var child = target.rchild;
+
+            if (child != Nil)
+            {
+                child.parent = target.parent;
+                target.rchild = Nil;
+            }
+
+            if (target.parent != Nil)
+            {
+                if (target.parent.lchild == target)
+                    target.parent.lchild = child;
+                else
+                    target.parent.rchild = child;
+                target.parent = Nil;
+            }
+
+            if (m_root == target)
+            {
+                m_root = child;
+            }
+        }
+
+        protected virtual void UpdateNode(Node from, Node to)
+        {
+            from.key = to.key;
+            from.value = to.value;
+            from.hashCode = to.hashCode;
         }
 
         protected virtual Node NewNode(K key, V value, Node parent)
