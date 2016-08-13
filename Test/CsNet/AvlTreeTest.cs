@@ -7,8 +7,8 @@ namespace Test
     {
         protected override bool ValidTree(AvlTree<int, int> tree)
         {
-            Console.WriteLine("Valid balance ...");
-            tree._ValidBalance();
+            if (!tree._ValidBalance())
+                return false;
 
             return base.ValidTree(tree);
         }

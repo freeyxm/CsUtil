@@ -529,26 +529,36 @@ namespace CsNet.Collections
             }
         }
 
-        private bool _ValidBalance(AvlTreeNode<K, V> node)
+        private bool _ValidBalance(AvlTreeNode<K, V> node, ref int height)
         {
-            if (node == null)
-                return true;
-
             if (node.balance < Balance.RH || node.balance > Balance.LH)
             {
-                throw new InvalidBalanceException(string.Format("node[{0}]", node.hashCode), node.balance);
-                //return false;
+                //throw new InvalidBalanceException(string.Format("node[{0}]", node.hashCode), node.balance);
+                System.Diagnostics.Debug.Assert(false, "balance invalid.");
+                return false;
             }
 
             bool ret = true;
+            int lh = 0, rh = 0;
+
             if (ret && node.lchild != null)
             {
-                ret = _ValidBalance(node.lchild);
+                ret = _ValidBalance(node.lchild, ref lh);
             }
+
             if (ret && node.rchild != null)
             {
-                ret = _ValidBalance(node.rchild);
+                ret = _ValidBalance(node.rchild, ref rh);
             }
+
+            if (ret && (lh - rh) != node.balance)
+            {
+                System.Diagnostics.Debug.Assert(false, "balance not sync with height.");
+                return false;
+            }
+
+            height = Math.Max(lh, rh) + 1;
+
             return ret;
         }
 
@@ -556,8 +566,9 @@ namespace CsNet.Collections
         {
             if (m_root == null)
                 return true;
-            else
-                return _ValidBalance(m_root);
+
+            int height = 0;
+            return _ValidBalance(m_root, ref height);
         }
         #endregion Balance
 

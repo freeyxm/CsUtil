@@ -16,18 +16,6 @@ namespace CsNet.Collections
             Red,
         }
 
-        private new static RBTreeNode<K, V> Nil;
-        static RBTree()
-        {
-            Nil = new RBTreeNode<K, V>();
-            Nil.color = Color.Black;
-            Nil.parent = Nil;
-            Nil.lchild = Nil.rchild = Nil;
-            Nil.key = default(K);
-            Nil.value = default(V);
-            Nil.hashCode = -1;
-        }
-
         public RBTree()
             : this(null, 0)
         {
@@ -39,8 +27,14 @@ namespace CsNet.Collections
         }
 
         public RBTree(IEqualityComparer<K> comparer, int capacity = 0)
-            : base(comparer, capacity, Nil)
+            : base(comparer, capacity, new RBTreeNode<K, V>())
         {
+            Nil.color = Color.Black;
+            Nil.parent = Nil;
+            Nil.lchild = Nil.rchild = Nil;
+            Nil.key = default(K);
+            Nil.value = default(V);
+            Nil.hashCode = -1;
         }
 
         protected override bool Insert(K key, V value)
@@ -497,6 +491,52 @@ namespace CsNet.Collections
             var node = base.NewNode(key, value, parent);
             node.color = Color.Red;
             return node;
+        }
+
+        public bool _ValidBalance()
+        {
+            if (m_root == Nil)
+                return true;
+
+            // condition 2
+            if (m_root.color != Color.Black)
+            {
+                System.Diagnostics.Debug.Assert(false, "Root node should black.");
+                return false;
+            }
+
+            // condition 3
+            if (Nil.color != Color.Black)
+            {
+                System.Diagnostics.Debug.Assert(false, "Nil node should black.");
+                return false;
+            }
+
+            return _ValidBalance(m_root);
+        }
+
+        private bool _ValidBalance(RBTreeNode<K, V> node)
+        {
+            // condition 4
+            if (node.color == Color.Red)
+            {
+                if (node.lchild.color != Color.Black || node.rchild.color != Color.Black)
+                {
+                    System.Diagnostics.Debug.Assert(false, "Red node's child should black.");
+                    return false;
+                }
+            }
+            if (node.lchild != Nil)
+            {
+                if (!_ValidBalance(node.lchild))
+                    return false;
+            }
+            if (node.rchild != Nil)
+            {
+                if (!_ValidBalance(node.rchild))
+                    return false;
+            }
+            return true;
         }
     }
 }

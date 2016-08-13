@@ -12,26 +12,30 @@ namespace Test
         List<int> m_result;
         List<int> m_result1 = new List<int>();
         List<int> m_result2 = new List<int>();
+        int m_count;
 
-        public void TestValidity()
+        public virtual void TestValidity()
         {
-            Random random = new Random((int)DateTime.Now.Ticks);
+            TestValidity(null, 1000, int.MaxValue);
+        }
 
+        protected void TestValidity(string inputStr, int maxCount, int maxValue)
+        {
             Console.WriteLine("------------------------------------");
             Console.WriteLine("TestValidity:\n");
 
-            string inputStr = "";
-            int maxCount = !string.IsNullOrEmpty(inputStr) ? inputStr.Length : 10000;
-            int maxValue = int.MaxValue;
-            int delTarget = random.Next(maxValue);
+            if (!string.IsNullOrEmpty(inputStr))
+            {
+                maxCount = inputStr.Length;
+            }
+            Random random = new Random((int)DateTime.Now.Ticks);
 
             // 构造测试数据
             Console.WriteLine("Generate data {0} ...", maxCount);
             List<int> input = new List<int>(maxCount);
             if (string.IsNullOrEmpty(inputStr))
             {
-                input.Add(delTarget); // 确保至少有一个供删除的目标
-                for (int i = 1; i < maxCount; ++i)
+                for (int i = 0; i < maxCount; ++i)
                 {
                     input.Add(random.Next(maxValue));
                 }
@@ -55,8 +59,13 @@ namespace Test
             {
                 tree.Add(input[i], 0);
             }
+            // 插入校验
+            m_count = 0;
+            tree.TraverseInOrder(TraverseCount);
+            Debug.Assert(m_count == maxCount, "Valid Insert failed!");
 
-            // 校验
+            // 平衡校验
+            Console.WriteLine("Valid Tree ...");
             ValidTree(tree);
 
             // 校验前序
@@ -96,7 +105,13 @@ namespace Test
             foreach (var key in input)
             {
                 if (tree.Remove(key))
+                {
                     ++rcount;
+                    // 平衡校验
+                    ValidTree(tree);
+                }
+                else
+                    Debug.Assert(false, "Valid Remove failed!");
             }
             Debug.Assert(rcount == maxCount && tree.Count == 0, "Valid Remove failed!");
 
@@ -108,8 +123,6 @@ namespace Test
 
         protected virtual bool ValidTree(Tree tree)
         {
-            Console.WriteLine("Valid tree ...");
-
             m_result = m_result1;
             m_result.Clear();
             tree.TraverseInOrder(Traverse);
@@ -130,6 +143,11 @@ namespace Test
             m_result.Add(key);
         }
 
+        private void TraverseCount(int key, int value)
+        {
+            ++m_count;
+        }
+
         public virtual void TestPerformace()
         {
             Tree tree = new Tree();
@@ -138,12 +156,12 @@ namespace Test
 
         protected void TestPerformace(Tree tree, int maxCount)
         {
+            Console.WriteLine("------------------------------------");
+            Console.WriteLine("TestPerformace:\n");
+
             Stopwatch watch = new Stopwatch();
             List<int> keys = new List<int>();
             Random random = new Random((int)DateTime.Now.Ticks);
-
-            Console.WriteLine("------------------------------------");
-            Console.WriteLine("TestPerformace:\n");
 
             TestUtility.RunTime(string.Format("Generate data {0}", maxCount), watch, () =>
             {
