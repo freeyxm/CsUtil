@@ -65,18 +65,20 @@ namespace CsNet.Collections
             {
                 var tmp = m_root;
                 var p = Nil;
+                int cmp = 0;
 
                 while (tmp != Nil)
                 {
                     p = tmp;
-                    if (n.hashCode.CompareTo(tmp.hashCode) < 0)
+                    cmp = n.hashCode.CompareTo(tmp.hashCode);
+                    if (cmp < 0)
                         tmp = tmp.lchild;
                     else
                         tmp = tmp.rchild;
                 }
 
                 n.parent = p;
-                if (n.hashCode.CompareTo(p.hashCode) < 0)
+                if (cmp < 0)
                     p.lchild = n;
                 else
                     p.rchild = n;
@@ -434,33 +436,12 @@ namespace CsNet.Collections
                 break;
             }
         }
-
-        private void Transplant(RBTreeNode<K, V> u, RBTreeNode<K, V> v)
-        {
-            if (u == Nil)
-                m_root = v;
-            else if (u.parent.lchild == u)
-                u.parent.lchild = v;
-            else
-                u.parent.rchild = v;
-
-            v.parent = u.parent;
-        }
-
-        private RBTreeNode<K, V> Minimum(RBTreeNode<K, V> z)
-        {
-            while (z.lchild != Nil)
-            {
-                z = z.lchild;
-            }
-            return z;
-        }
         #endregion Delete
 
         #region Kinship
         private RBTreeNode<K, V> Grandparent(RBTreeNode<K, V> n)
         {
-            if (n.parent == null)
+            if (n.parent == Nil)
                 return null;
             else
                 return n.parent.parent;
@@ -479,7 +460,7 @@ namespace CsNet.Collections
 
         private RBTreeNode<K, V> Sibling(RBTreeNode<K, V> n)
         {
-            if (n.parent == null)
+            if (n.parent == Nil)
                 return null;
             if (n == n.parent.lchild)
                 return n.parent.rchild;
