@@ -19,9 +19,6 @@ namespace CsNet.Collections
             public const sbyte LL = 2;
         }
 
-        private int m_hashCode;
-        private bool m_heightChanged;
-
         public AvlTree()
             : this(null, 0)
         {
@@ -129,121 +126,103 @@ namespace CsNet.Collections
 
         protected override bool Delete(K key)
         {
-            bool ret = false;
-            if (m_root != null)
+            var target = FindKey(key);
+            if (target != null)
             {
-                m_heightChanged = false;
-                m_hashCode = m_comparer.GetHashCode(key);
-                ret = Delete(m_root);
+                Delete(target);
+                return true;
             }
-            return ret;
+            return false;
         }
 
-        private bool Delete(AvlTreeNode<K, V> target)
+        private void Delete(AvlTreeNode<K, V> target)
         {
-            int cmp = m_hashCode.CompareTo(target.hashCode);
-            if (cmp < 0)
+            if (target.lchild != null && target.rchild != null)
             {
-                if (target.lchild == null)
-                    return false;
-                bool ret = Delete(target.lchild);
-                if (ret && m_heightChanged)
-                {
-                    target.balance--;
-                    CheckLeftDown(target);
-                }
-                return ret;
+                AvlTreeNode<K, V> toDel;
+                if (target.balance == Balance.LH)
+                    toDel = GetRightestNode(target.lchild);
+                else
+                    toDel = GetLeftestNode(target.rchild);
+                UpdateNode(target, toDel);
+                target = toDel;
             }
-            else if (cmp > 0)
+
+            var parent = target.parent;
+            bool heightChanged = CheckTreeDown(parent, target);
+
+            if (target.lchild != null)
             {
-                if (target.rchild == null)
-                    return false;
-                bool ret = Delete(target.rchild);
-                if (ret && m_heightChanged)
-                {
-                    target.balance++;
-                    CheckRightDown(target);
-                }
-                return ret;
+                PromoteLeftChild(target);
             }
             else
             {
-                if (target.lchild == null)
+                PromoteRightChild(target);
+            }
+            DelNode(target);
+
+            // delete fixup
+            bool isLeft;
+            target = parent;
+            while (heightChanged)
+            {
+                parent = target.parent;
+                switch (target.balance)
                 {
-                    PromoteRightChild(target);
-                    m_heightChanged = true;
+                    case Balance.LL:
+                        {
+                            isLeft = parent != null && target == parent.lchild;
+                            heightChanged = RightDownBalance(target);
+                            if (heightChanged && parent != null)
+                            {
+                                heightChanged = CheckTreeDown(parent, isLeft ? parent.lchild : parent.rchild);
+                            }
+                        }
+                        break;
+                    case Balance.EH:
+                        {
+                            heightChanged = CheckTreeDown(parent, target);
+                        }
+                        break;
+                    case Balance.RR:
+                        {
+                            isLeft = parent != null && target == parent.lchild;
+                            heightChanged = LeftDownBalance(target);
+                            if (heightChanged && parent != null)
+                            {
+                                heightChanged = CheckTreeDown(parent, isLeft ? parent.lchild : parent.rchild);
+                            }
+                        }
+                        break;
+                    default:
+                        heightChanged = false;
+                        break;
                 }
-                else if (target.rchild == null)
+
+                if (!heightChanged || parent == null)
+                    break;
+                else
+                    target = parent;
+            }
+        }
+
+        private bool CheckTreeDown(AvlTreeNode<K, V> parent, AvlTreeNode<K, V> child)
+        {
+            bool heightChanged = false;
+            if (parent != null)
+            {
+                if (parent.lchild == child)
                 {
-                    PromoteLeftChild(target);
-                    m_heightChanged = true;
-                }
-                else if (target.balance == Balance.LH) // 从较高的子树上选择替换节点
-                {
-                    var toDel = DeleteRightest(target.lchild);
-                    UpdateNode(target, toDel);
-                    if (m_heightChanged)
-                    {
-                        target.balance--;
-                        CheckLeftDown(target);
-                    }
-                    target = toDel;
+                    parent.balance--;
+                    heightChanged = parent.balance != Balance.RH;
                 }
                 else
                 {
-                    var toDel = DeleteLeftest(target.rchild);
-                    UpdateNode(target, toDel);
-                    if (m_heightChanged)
-                    {
-                        target.balance++;
-                        CheckRightDown(target);
-                    }
-                    target = toDel;
+                    parent.balance++;
+                    heightChanged = parent.balance != Balance.LH;
                 }
-
-                DelNode(target);
-                return true;
             }
-        }
-
-        private AvlTreeNode<K, V> DeleteRightest(AvlTreeNode<K, V> target)
-        {
-            if (target.rchild == null)
-            {
-                PromoteLeftChild(target);
-                m_heightChanged = true;
-                return target;
-            }
-            else
-            {
-                var node = DeleteRightest(target.rchild);
-                if (m_heightChanged)
-                {
-                    target.balance++;
-                    CheckRightDown(target);
-                }
-                return node;
-            }
-        }
-
-        private AvlTreeNode<K, V> DeleteLeftest(AvlTreeNode<K, V> target)
-        {
-            if (target.lchild == null)
-            {
-                PromoteRightChild(target);
-                m_heightChanged = true;
-                return target;
-            }
-            else
-            {
-                var node = DeleteLeftest(target.lchild);
-                if (m_heightChanged)
-                {
-                    target.balance--;
-                    CheckLeftDown(target);
-                }
-                return node;
-            }
+            return heightChanged;
         }
 
         #region Balance
@@ -461,52 +440,6 @@ namespace CsNet.Collections
                     throw new InvalidBalanceException("right down, lc", lc.balance);
             }
             return heightChanged;
-        }
-
-        /// <summary>
-        /// 左子树降低后平衡检查
-        /// </summary>
-        /// <param name="target"></param>
-        private void CheckLeftDown(AvlTreeNode<K, V> target)
-        {
-            switch (target.balance)
-            {
-                case Balance.RR:
-                    m_heightChanged = LeftDownBalance(target);
-                    break;
-                case Balance.RH:
-                    m_heightChanged = false;
-                    break;
-                case Balance.EH:
-                    m_heightChanged = true; // 左子树降低后等高，高度减小
-                    break;
-                default:
-                    m_heightChanged = false;
-                    throw new InvalidBalanceException("left down, t", target.balance);
-            }
-        }
-
-        /// <summary>
-        /// 右子树降低后平衡检查
-        /// </summary>
-        /// <param name="target"></param>
-        private void CheckRightDown(AvlTreeNode<K, V> target)
-        {
-            switch (target.balance)
-            {
-                case Balance.LL:
-                    m_heightChanged = RightDownBalance(target);
-                    break;
-                case Balance.LH:
-                    m_heightChanged = false;
-                    break;
-                case Balance.EH:
-                    m_heightChanged = true; // 右子树降低后等高，高度减小
-                    break;
-                default:
-                    m_heightChanged = false;
-                    throw new InvalidBalanceException("right down, t", target.balance);
-            }
         }
         #endregion Balance
 
