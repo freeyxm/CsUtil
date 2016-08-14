@@ -83,7 +83,15 @@ namespace CsNet.Collections
                 heightChanged = target.balance == Balance.RH;
             }
 
-            // insert fixup
+            if (heightChanged)
+            {
+                InsertFixup(target);
+            }
+        }
+
+        private void InsertFixup(AvlTreeNode<K, V> target)
+        {
+            bool heightChanged = true;
             while (heightChanged)
             {
                 var parent = target.parent;
@@ -159,14 +167,22 @@ namespace CsNet.Collections
             {
                 PromoteRightChild(target);
             }
+
             DelNode(target);
 
-            // delete fixup
+            if (heightChanged)
+            {
+                DeleteFixup(parent);
+            }
+        }
+
+        private void DeleteFixup(AvlTreeNode<K, V> target)
+        {
             bool isLeft;
-            target = parent;
+            bool heightChanged = true;
             while (heightChanged)
             {
-                parent = target.parent;
+                var parent = target.parent;
                 switch (target.balance)
                 {
                     case Balance.LL:
