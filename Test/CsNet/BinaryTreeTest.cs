@@ -123,6 +123,9 @@ namespace Test
 
         protected virtual bool ValidTree(Tree tree)
         {
+            if (!tree._CheckBalance())
+                return false;
+
             m_result = m_result1;
             m_result.Clear();
             tree.TraverseInOrder(Traverse);

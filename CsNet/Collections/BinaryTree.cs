@@ -105,6 +105,8 @@ namespace CsNet.Collections
 
         public virtual int Count { get { return m_count; } }
 
+        public virtual int Capacity { get { return m_count + m_nodeCache.Count; } }
+
         #region Recursive Traverse
         public virtual void TraversePreOrder_r(Action<K, V> action)
         {
@@ -429,6 +431,11 @@ namespace CsNet.Collections
         protected virtual void DelNode(Node node)
         {
             m_nodeCache.FreeNode(node);
+        }
+
+        public virtual bool _CheckBalance()
+        {
+            return true;
         }
     }
 }

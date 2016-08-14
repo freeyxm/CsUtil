@@ -528,8 +528,19 @@ namespace CsNet.Collections
                     throw new InvalidBalanceException("right down, t", target.balance);
             }
         }
+        #endregion Balance
 
-        private bool _ValidBalance(AvlTreeNode<K, V> node, ref int height)
+        #region _CheckBalance
+        public override bool _CheckBalance()
+        {
+            if (m_root == null)
+                return true;
+
+            int height = 0;
+            return _CheckBalance(m_root, ref height);
+        }
+
+        private bool _CheckBalance(AvlTreeNode<K, V> node, ref int height)
         {
             if (node.balance < Balance.RH || node.balance > Balance.LH)
             {
@@ -543,12 +554,12 @@ namespace CsNet.Collections
 
             if (ret && node.lchild != null)
             {
-                ret = _ValidBalance(node.lchild, ref lh);
+                ret = _CheckBalance(node.lchild, ref lh);
             }
 
             if (ret && node.rchild != null)
             {
-                ret = _ValidBalance(node.rchild, ref rh);
+                ret = _CheckBalance(node.rchild, ref rh);
             }
 
             if (ret && (lh - rh) != node.balance)
@@ -561,16 +572,7 @@ namespace CsNet.Collections
 
             return ret;
         }
-
-        public bool _ValidBalance()
-        {
-            if (m_root == null)
-                return true;
-
-            int height = 0;
-            return _ValidBalance(m_root, ref height);
-        }
-        #endregion Balance
+        #endregion _CheckBalance
 
         protected override AvlTreeNode<K, V> NewNode(K key, V value, AvlTreeNode<K, V> parent = null)
         {

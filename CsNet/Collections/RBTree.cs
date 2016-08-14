@@ -493,7 +493,8 @@ namespace CsNet.Collections
             return node;
         }
 
-        public bool _ValidBalance()
+        #region _CheckBalance
+        public override bool _CheckBalance()
         {
             if (m_root == Nil)
                 return true;
@@ -501,42 +502,92 @@ namespace CsNet.Collections
             // condition 2
             if (m_root.color != Color.Black)
             {
-                System.Diagnostics.Debug.Assert(false, "Root node should black.");
+                System.Diagnostics.Debug.Assert(false, "Cond2: Root node should black.");
                 return false;
             }
 
             // condition 3
             if (Nil.color != Color.Black)
             {
-                System.Diagnostics.Debug.Assert(false, "Nil node should black.");
+                System.Diagnostics.Debug.Assert(false, "Cond3: Nil node should black.");
                 return false;
             }
 
-            return _ValidBalance(m_root);
+            // condition 4
+            if (!_CheckBalanceCond4(m_root))
+                return false;
+
+            // condition 5
+            int count = 0;
+            if (!_CheckBalanceCond5(m_root, ref count))
+                return false;
+
+            return true;
         }
 
-        private bool _ValidBalance(RBTreeNode<K, V> node)
+        private bool _CheckBalanceCond4(RBTreeNode<K, V> node)
         {
-            // condition 4
             if (node.color == Color.Red)
             {
                 if (node.lchild.color != Color.Black || node.rchild.color != Color.Black)
                 {
-                    System.Diagnostics.Debug.Assert(false, "Red node's child should black.");
+                    System.Diagnostics.Debug.Assert(false, "Cond4: Red node's child should black.");
                     return false;
                 }
             }
             if (node.lchild != Nil)
             {
-                if (!_ValidBalance(node.lchild))
+                if (!_CheckBalanceCond4(node.lchild))
                     return false;
             }
             if (node.rchild != Nil)
             {
-                if (!_ValidBalance(node.rchild))
+                if (!_CheckBalanceCond4(node.rchild))
                     return false;
             }
             return true;
         }
+
+        private bool _CheckBalanceCond5(RBTreeNode<K, V> node, ref int count)
+        {
+            if (node.color == Color.Black)
+            {
+                ++count;
+            }
+
+            int countL = 0, countR = 0;
+            bool ret = true;
+
+            if (ret)
+            {
+                if (node.lchild == Nil)
+                    countL = 1;
+                else
+                    ret = _CheckBalanceCond5(node.lchild, ref countL);
+            }
+
+            if (ret)
+            {
+                if (node.rchild == Nil)
+                    countR = 1;
+                else
+                    ret = _CheckBalanceCond5(node.rchild, ref countR);
+            }
+
+            if (!ret)
+                return false;
+
+            if (countL != countR)
+            {
+                System.Diagnostics.Debug.Assert(countL == countR, "Cond5: black node num to leaf should equal.");
+                return false;
+            }
+            else
+            {
+                count += countL;
+                return true;
+            }
+        }
+        #endregion _CheckBalance
     }
 }
