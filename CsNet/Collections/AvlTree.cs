@@ -19,7 +19,6 @@ namespace CsNet.Collections
             public const sbyte LL = 2;
         }
 
-        private AvlTreeNode<K, V> m_newNode;
         private int m_hashCode;
         private bool m_heightChanged;
 
@@ -40,28 +39,21 @@ namespace CsNet.Collections
 
         protected override bool Insert(K key, V value)
         {
+            var node = NewNode(key, value);
             if (m_root == null)
-            {
-                m_root = NewNode(key, value);
-            }
+                m_root = node;
             else
-            {
-                m_heightChanged = false;
-                m_newNode = NewNode(key, value);
-
-                Insert(m_root);
-
-                m_newNode = null;
-            }
+                Insert(node);
             return true;
         }
 
-        private void Insert(AvlTreeNode<K, V> target)
+        private void Insert(AvlTreeNode<K, V> node)
         {
             int cmp;
+            var target = m_root;
             while (true)
             {
-                cmp = m_newNode.hashCode.CompareTo(target.hashCode);
+                cmp = node.hashCode.CompareTo(target.hashCode);
                 if (cmp < 0)
                 {
                     if (target.lchild == null)
@@ -81,15 +73,15 @@ namespace CsNet.Collections
             bool heightChanged;
             if (cmp < 0)
             {
-                m_newNode.parent = target;
-                target.lchild = m_newNode;
+                node.parent = target;
+                target.lchild = node;
                 target.balance++;
                 heightChanged = target.balance == Balance.LH;
             }
             else
             {
-                m_newNode.parent = target;
-                target.rchild = m_newNode;
+                node.parent = target;
+                target.rchild = node;
                 target.balance--;
                 heightChanged = target.balance == Balance.RH;
             }
