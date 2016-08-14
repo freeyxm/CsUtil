@@ -6,6 +6,7 @@ namespace CsNet.Collections
     public class RBTreeNode<K, V> : BinaryTreeNode<K, V, RBTreeNode<K, V>>
     {
         public RBTree<K, V>.Color color;
+        public int IColor { get { return (int)color; } }
     }
 
     public class RBTree<K, V> : BinaryTree<K, V, RBTreeNode<K, V>>
@@ -30,8 +31,8 @@ namespace CsNet.Collections
             : base(comparer, capacity, new RBTreeNode<K, V>())
         {
             Nil.color = Color.Black;
-            Nil.parent = Nil;
-            Nil.lchild = Nil.rchild = Nil;
+            Nil.parent = null;
+            Nil.lchild = Nil.rchild = null;
             Nil.key = default(K);
             Nil.value = default(V);
             Nil.hashCode = -1;
@@ -57,25 +58,25 @@ namespace CsNet.Collections
         #region Insert
         private void Insert(RBTreeNode<K, V> n)
         {
-            var tmp = m_root;
-            var p = Nil;
-
-            while (tmp != Nil)
-            {
-                p = tmp;
-                if (n.hashCode.CompareTo(tmp.hashCode) < 0)
-                    tmp = tmp.lchild;
-                else
-                    tmp = tmp.rchild;
-            }
-
-            n.parent = p;
             if (m_root == Nil)
             {
                 m_root = n;
             }
             else
             {
+                var tmp = m_root;
+                var p = Nil;
+
+                while (tmp != Nil)
+                {
+                    p = tmp;
+                    if (n.hashCode.CompareTo(tmp.hashCode) < 0)
+                        tmp = tmp.lchild;
+                    else
+                        tmp = tmp.rchild;
+                }
+
+                n.parent = p;
                 if (n.hashCode.CompareTo(p.hashCode) < 0)
                     p.lchild = n;
                 else
@@ -89,7 +90,7 @@ namespace CsNet.Collections
         #region insert fix up (recursive)
         private void insert_case1(RBTreeNode<K, V> n)
         {
-            if (n.parent == Nil)
+            if (n == m_root)
                 n.color = Color.Black;
             else
                 insert_case2(n);
@@ -106,7 +107,7 @@ namespace CsNet.Collections
         private void insert_case3(RBTreeNode<K, V> n)
         {
             var u = Uncle(n);
-            if (u != Nil && u.color == Color.Red)
+            if (u != null && u.color == Color.Red)
             {
                 var g2 = Grandparent(n);
                 n.parent.color = Color.Black;
@@ -153,7 +154,7 @@ namespace CsNet.Collections
             while (true)
             {
                 // case 1
-                if (n.parent == Nil)
+                if (n == m_root)
                 {
                     n.color = Color.Black;
                     break;
@@ -165,7 +166,7 @@ namespace CsNet.Collections
 
                 // case 3
                 var u = Uncle(n);
-                if (u != Nil && u.color == Color.Red)
+                if (u != null && u.color == Color.Red)
                 {
                     var g2 = Grandparent(n);
                     n.parent.color = Color.Black;
@@ -210,44 +211,45 @@ namespace CsNet.Collections
         #region Delete
         private void Delete(RBTreeNode<K, V> target)
         {
-            var toDel = Nil;
-            var toFix = Nil;
+            var toDel = target;
             if (target.lchild != Nil && target.rchild != Nil)
             {
                 toDel = GetLeftestNode(target.rchild);
-                target.key = toDel.key;
-                target.value = toDel.value;
-                target.hashCode = toDel.hashCode;
-                toFix = toDel.rchild;
-                PromoteRightChild(toDel);
+                UpdateNode(target, toDel);
             }
-            else if (target.lchild != Nil)
+
+            delete_one_child(toDel);
+
+            DelNode(toDel);
+        }
+
+        private void delete_one_child(RBTreeNode<K, V> n)
+        {
+            RBTreeNode<K, V> child;
+            // replace node
+            if (n.rchild == Nil)
             {
-                toDel = target;
-                toFix = target.lchild;
-                PromoteLeftChild(target);
+                child = n.lchild;
+                PromoteLeftChild(n);
             }
             else
             {
-                toDel = target;
-                toFix = target.rchild;
-                PromoteRightChild(target);
+                child = n.rchild;
+                PromoteRightChild(n);
             }
 
-            if (toDel.color == Color.Black)
+            if (n.color == Color.Black)
             {
-                if (toFix.color == Color.Red)
+                if (child.color == Color.Red)
                 {
-                    toFix.color = Color.Black;
+                    child.color = Color.Black;
                 }
                 else
                 {
-                    delete_case1(toFix);
-                    //DeleteFixup(toFix);
+                    //delete_case1(child);
+                    DeleteFixup(child);
                 }
             }
-
-            DelNode(toDel);
         }
 
         #region delete fix up (recursive)
@@ -390,6 +392,7 @@ namespace CsNet.Collections
                 {
                     s.color = Color.Red;
                     n.parent.color = Color.Black;
+                    break;
                 }
 
                 // case 5
@@ -458,8 +461,8 @@ namespace CsNet.Collections
         #region Kinship
         private RBTreeNode<K, V> Grandparent(RBTreeNode<K, V> n)
         {
-            if (n.parent == Nil)
-                return Nil;
+            if (n.parent == null)
+                return null;
             else
                 return n.parent.parent;
         }
@@ -467,8 +470,8 @@ namespace CsNet.Collections
         private RBTreeNode<K, V> Uncle(RBTreeNode<K, V> n)
         {
             var g = Grandparent(n);
-            if (g == Nil)
-                return Nil;
+            if (g == null)
+                return null;
             if (g.lchild == n.parent)
                 return g.rchild;
             else
@@ -477,8 +480,8 @@ namespace CsNet.Collections
 
         private RBTreeNode<K, V> Sibling(RBTreeNode<K, V> n)
         {
-            if (n.parent == Nil)
-                return Nil;
+            if (n.parent == null)
+                return null;
             if (n == n.parent.lchild)
                 return n.parent.rchild;
             else

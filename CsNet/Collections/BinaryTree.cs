@@ -363,11 +363,8 @@ namespace CsNet.Collections
         {
             var child = target.lchild;
 
-            if (child != Nil)
-            {
-                child.parent = target.parent;
-                target.lchild = Nil;
-            }
+            child.parent = target.parent;
+            target.lchild = Nil;
 
             if (target.parent != Nil)
             {
@@ -388,11 +385,8 @@ namespace CsNet.Collections
         {
             var child = target.rchild;
 
-            if (child != Nil)
-            {
-                child.parent = target.parent;
-                target.rchild = Nil;
-            }
+            child.parent = target.parent;
+            target.rchild = Nil;
 
             if (target.parent != Nil)
             {
