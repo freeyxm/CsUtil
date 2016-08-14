@@ -6,7 +6,6 @@ namespace CsNet.Collections
     public class RBTreeNode<K, V> : BinaryTreeNode<K, V, RBTreeNode<K, V>>
     {
         public RBTree<K, V>.Color color;
-        public int IColor { get { return (int)color; } }
     }
 
     public class RBTree<K, V> : BinaryTree<K, V, RBTreeNode<K, V>>

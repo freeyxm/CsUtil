@@ -331,12 +331,12 @@ namespace CsNet.Collections
             while (node != Nil)
             {
                 cmp = hashCode.CompareTo(node.hashCode);
-                if (cmp == 0)
-                    break;
-                else if (cmp < 0)
+                if (cmp < 0)
                     node = node.lchild;
-                else
+                else if (cmp > 0)
                     node = node.rchild;
+                else
+                    break;
             }
             return node;
         }
