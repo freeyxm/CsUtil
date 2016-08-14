@@ -58,46 +58,80 @@ namespace CsNet.Collections
 
         private void Insert(AvlTreeNode<K, V> target)
         {
-            int cmp = m_newNode.hashCode.CompareTo(target.hashCode);
-            if (cmp < 0)
+            int cmp;
+            while (true)
             {
-                if (target.lchild == null)
+                cmp = m_newNode.hashCode.CompareTo(target.hashCode);
+                if (cmp < 0)
                 {
-                    m_newNode.parent = target;
-                    target.lchild = m_newNode;
-                    target.balance++;
-                    if (target.balance == Balance.LH)
-                        m_heightChanged = true;
+                    if (target.lchild == null)
+                        break;
+                    else
+                        target = target.lchild;
                 }
                 else
                 {
-                    Insert(target.lchild);
-                    if (m_heightChanged)
-                    {
-                        target.balance++;
-                        CheckLeftUp(target);
-                    }
+                    if (target.rchild == null)
+                        break;
+                    else
+                        target = target.rchild;
                 }
+            }
+
+            bool heightChanged;
+            if (cmp < 0)
+            {
+                m_newNode.parent = target;
+                target.lchild = m_newNode;
+                target.balance++;
+                heightChanged = target.balance == Balance.LH;
             }
             else
             {
-                if (target.rchild == null)
+                m_newNode.parent = target;
+                target.rchild = m_newNode;
+                target.balance--;
+                heightChanged = target.balance == Balance.RH;
+            }
+
+            // insert fixup
+            while (heightChanged)
+            {
+                var parent = target.parent;
+
+                switch (target.balance)
                 {
-                    m_newNode.parent = target;
-                    target.rchild = m_newNode;
-                    target.balance--;
-                    if (target.balance == Balance.RH)
-                        m_heightChanged = true;
+                    case Balance.LL:
+                        {
+                            heightChanged = LeftUpBalance(target);
+                        }
+                        break;
+                    case Balance.LH:
+                    case Balance.RH:
+                        {
+                            if (parent != null)
+                            {
+                                if (parent.lchild == target)
+                                    parent.balance++;
+                                else
+                                    parent.balance--;
+                            }
+                        }
+                        break;
+                    case Balance.RR:
+                        {
+                            heightChanged = RightUpBalance(target);
+                        }
+                        break;
+                    default:
+                        heightChanged = false;
+                        break;
                 }
+
+                if (!heightChanged || parent == null)
+                    break;
                 else
-                {
-                    Insert(target.rchild);
-                    if (m_heightChanged)
-                    {
-                        target.balance--;
-                        CheckRightUp(target);
-                    }
-                }
+                    target = parent;
             }
         }
 
@@ -438,29 +472,6 @@ namespace CsNet.Collections
         }
 
         /// <summary>
-        /// 左子树升高后平衡检查
-        /// </summary>
-        /// <param name="target"></param>
-        private void CheckLeftUp(AvlTreeNode<K, V> target)
-        {
-            switch (target.balance)
-            {
-                case Balance.LL:
-                    m_heightChanged = LeftUpBalance(target);
-                    break;
-                case Balance.LH:
-                    m_heightChanged = true; // 左子树升高，高度增大
-                    break;
-                case Balance.EH:
-                    m_heightChanged = false;
-                    break;
-                default:
-                    m_heightChanged = false;
-                    throw new InvalidBalanceException("left up, t", target.balance);
-            }
-        }
-
-        /// <summary>
         /// 左子树降低后平衡检查
         /// </summary>
         /// <param name="target"></param>
@@ -480,29 +491,6 @@ namespace CsNet.Collections
                 default:
                     m_heightChanged = false;
                     throw new InvalidBalanceException("left down, t", target.balance);
-            }
-        }
-
-        /// <summary>
-        /// 右子树升高后平衡检查
-        /// </summary>
-        /// <param name="target"></param>
-        private void CheckRightUp(AvlTreeNode<K, V> target)
-        {
-            switch (target.balance)
-            {
-                case Balance.RR:
-                    m_heightChanged = RightUpBalance(target);
-                    break;
-                case Balance.RH:
-                    m_heightChanged = true; // 右子树升高，高度增大
-                    break;
-                case Balance.EH:
-                    m_heightChanged = false;
-                    break;
-                default:
-                    m_heightChanged = false;
-                    throw new InvalidBalanceException("right up, t", target.balance);
             }
         }
 
