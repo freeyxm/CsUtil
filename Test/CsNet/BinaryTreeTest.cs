@@ -24,16 +24,18 @@ namespace Test
             Console.WriteLine("------------------------------------");
             Console.WriteLine("TestValidity:\n");
 
+            string[] inputs = null;
             if (!string.IsNullOrEmpty(inputStr))
             {
-                maxCount = inputStr.Length;
+                inputs = inputStr.Split(',');
+                maxCount = inputs.Length;
             }
             Random random = new Random((int)DateTime.Now.Ticks);
 
             // 构造测试数据
             Console.WriteLine("Generate data {0} ...", maxCount);
             List<int> input = new List<int>(maxCount);
-            if (string.IsNullOrEmpty(inputStr))
+            if (inputs == null || inputs.Length == 0)
             {
                 for (int i = 0; i < maxCount; ++i)
                 {
@@ -42,9 +44,9 @@ namespace Test
             }
             else
             {
-                for (int i = 0; i < inputStr.Length; ++i)
+                for (int i = 0; i < inputs.Length; ++i)
                 {
-                    input.Add((int)inputStr[i]);
+                    input.Add(int.Parse(inputs[i]));
                 }
             }
             if (maxCount <= 10)
