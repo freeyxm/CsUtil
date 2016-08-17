@@ -1,5 +1,5 @@
 ﻿using System;
-using CsNet.Collections;
+using CsUtil.Collections;
 
 namespace Test
 {

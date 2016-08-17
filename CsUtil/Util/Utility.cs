@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-namespace CsNet.Util
+namespace CsUtil.Util
 {
     public class Utility
     {

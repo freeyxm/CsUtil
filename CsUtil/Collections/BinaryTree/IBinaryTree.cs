@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CsNet.Collections.BinaryTree
+namespace CsUtil.Collections.BinaryTree
 {
     public interface IBinaryTree<K, V>
     {

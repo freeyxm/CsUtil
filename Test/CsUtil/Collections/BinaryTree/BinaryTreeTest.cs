@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using CsNet.Util;
-using CsNet.Collections.BinaryTree;
+using CsUtil.Util;
+using CsUtil.Collections.BinaryTree;
 
 namespace Test
 {
