@@ -40,29 +40,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Collections\AvlTree.cs" />
-    <Compile Include="Collections\Cache.cs" />
-    <Compile Include="Collections\BinaryTree.cs" />
-    <Compile Include="Collections\IBinaryTree.cs" />
-    <Compile Include="Collections\RBTree.cs" />
-    <Compile Include="Core\SocketMaster.cs" />
-    <Compile Include="Dispatcher\Loopable.cs" />
-    <Compile Include="Dispatcher\Runnable.cs" />
-    <Compile Include="Core\SocketHandler.cs" />
-    <Compile Include="Core\SocketListener.cs" />
-    <Compile Include="Dispatcher\Dispatcher.cs" />
-    <Compile Include="Dispatcher\Master.cs" />
-    <Compile Include="Dispatcher\Worker.cs" />
+    <Compile Include="Collections\Tree\BinaryTree\AvlTree.cs" />
+    <Compile Include="Collections\Tree\BinaryTree\BinaryTree.cs" />
+    <Compile Include="Collections\Tree\BinaryTree\Cache.cs" />
+    <Compile Include="Collections\Tree\BinaryTree\IBinaryTree.cs" />
+    <Compile Include="Collections\Tree\BinaryTree\RBTree.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SocketAccepter.cs" />
-    <Compile Include="SocketMsg.cs" />
-    <Compile Include="Socket\FResult.cs" />
-    <Compile Include="Socket\SocketBase.cs" />
-    <Compile Include="Core\SocketDispatcher.cs" />
-    <Compile Include="ControlManager.cs" />
-    <Compile Include="Socket\SocketTcp.cs" />
-    <Compile Include="Core\SocketWorker.cs" />
-    <Compile Include="Util\Logger.cs" />
     <Compile Include="Util\Utility.cs" />
   </ItemGroup>
   <ItemGroup />
