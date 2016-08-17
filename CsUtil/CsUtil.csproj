@@ -40,11 +40,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Collections\Tree\BinaryTree\AvlTree.cs" />
-    <Compile Include="Collections\Tree\BinaryTree\BinaryTree.cs" />
-    <Compile Include="Collections\Tree\BinaryTree\Cache.cs" />
-    <Compile Include="Collections\Tree\BinaryTree\IBinaryTree.cs" />
-    <Compile Include="Collections\Tree\BinaryTree\RBTree.cs" />
+    <Compile Include="Collections\BinaryTree\AvlTree.cs" />
+    <Compile Include="Collections\BinaryTree\BinaryTree.cs" />
+    <Compile Include="Collections\BinaryTree\Cache.cs" />
+    <Compile Include="Collections\BinaryTree\IBinaryTree.cs" />
+    <Compile Include="Collections\BinaryTree\RBTree.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Util\Utility.cs" />
   </ItemGroup>

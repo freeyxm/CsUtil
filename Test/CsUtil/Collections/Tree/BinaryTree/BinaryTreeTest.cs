@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using CsNet.Util;
-using CsNet.Collections.Tree.BinaryTree;
+using CsNet.Collections.BinaryTree;
 
 namespace Test
 {
