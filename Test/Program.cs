@@ -11,9 +11,12 @@ namespace Test
             //test.TestValidity();
             //test.TestPerformace();
 
-            var test2 = new RBTreeTest();
-            test2.TestValidity();
-            test2.TestPerformace();
+            //var test2 = new RBTreeTest();
+            //test2.TestValidity();
+            //test2.TestPerformace();
+
+            var test = new SelectionTest();
+            test.Test();
 
             Console.ReadKey();
         }
