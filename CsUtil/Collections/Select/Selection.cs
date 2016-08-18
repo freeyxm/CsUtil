@@ -69,7 +69,7 @@ namespace CsUtil.Collections.Select
                     break;
             }
 
-            return data[left + k];
+            return data[k];
         }
 
         public static int SelectKth(int[] data, int k)
@@ -145,9 +145,9 @@ namespace CsUtil.Collections.Select
             int target = min + (int)((long)k * (max - min) / data.Length); // 估计最佳的划分节点。
             int index = Partition(data, 0, data.Length - 1, target);
             if (index <= k)
-                return SelectKth(data, index, data.Length - 1, k - index);
+                return SelectKth(data, index, data.Length - 1, k);
             else
-                return SelectKth(data, 0, index, k);
+                return SelectKth(data, 0, Math.Min(index, data.Length - 1), k);
         }
 
         /// <summary>

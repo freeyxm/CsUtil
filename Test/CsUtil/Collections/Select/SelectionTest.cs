@@ -98,8 +98,8 @@ namespace Test
                     {
                         input[i] = random.Next(maxCount);
                     }
-                    data = new int[input.Length];
                 }
+                data = new int[input.Length];
             });
 
             int kth1 = -1, kth2 = -2, k = data.Length / 10 * 7;
