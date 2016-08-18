@@ -144,14 +144,15 @@ namespace CsUtil.Collections.Select
         {
             int count = data.Length;
             int left = 0, right = count - 1;
-            int offset = 0; // 修正估计区间，以防止在某一边小幅度逼近。
+            int index = -1;
+            int offset = 0; // 修正估计区间，以防止在某一侧小幅度逼近。
             int limit = (int)Math.Sqrt(data.Length);
             int iterCount = 0;
             while (right - left > limit && ++iterCount <= 6)
             {
-                // offset减半是为了防止在左右对称时，无畏的迭代。
+                // offset减半是为了防止在左右对称时，无谓的迭代。
                 int target = min + (int)((long)(k - left + offset / 2) * (max - min) / count);
-                int index = Partition(data, left, right, target);
+                index = Partition(data, left, right, target);
                 if (index < k)
                 {
                     offset = k - index; // 实际位置比估计位置靠左，下次估计应往右偏移。
@@ -170,11 +171,22 @@ namespace CsUtil.Collections.Select
                 }
                 else
                 {
-                    break;
+                    if (index == left) // 此时，区间内的所有值都大于target，需要继续迭代。
+                    {
+                        index = -1;
+                        min = target;
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
             }
             //Console.Write(" iterCount = {0}, range = {1}, ", iterCount, right - left);
-            return SelectKth(data, left, right, k);
+            if (index == k)
+                return data[k];
+            else
+                return SelectKth(data, left, right, k);
         }
 
         /// <summary>

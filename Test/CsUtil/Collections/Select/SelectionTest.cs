@@ -123,7 +123,7 @@ namespace Test
             });
 
             input.CopyTo(data, 0);
-            TestUtility.RunTime("SelectKth2", watch, () =>
+            TestUtility.RunTime("SelectKthE", watch, () =>
             {
                 kth2 = Selection.SelectKthE(data, k, 0, maxCount);
             });
