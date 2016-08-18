@@ -7,16 +7,11 @@ namespace Test
     {
         static void Main(string[] args)
         {
-            //var test = new AvlTreeTest();
-            //test.TestValidity();
-            //test.TestPerformace();
+            //new AvlTreeTest().Test();
 
-            //var test2 = new RBTreeTest();
-            //test2.TestValidity();
-            //test2.TestPerformace();
+            //new RBTreeTest().Test();
 
-            var test = new SelectionTest();
-            test.Test();
+            new SelectionTest().Test();
 
             Console.ReadKey();
         }

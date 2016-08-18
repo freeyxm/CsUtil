@@ -6,13 +6,19 @@ using CsUtil.Collections.BinaryTree;
 
 namespace Test
 {
-    class BinaryTreeTest<Tree, Node> where Tree : BinaryTree<int, int, Node>, new()
+    class BinaryTreeTest<Tree, Node> : TestBase where Tree : BinaryTree<int, int, Node>, new()
         where Node : BinaryTreeNode<int, int, Node>, new()
     {
         List<int> m_result;
         List<int> m_result1 = new List<int>();
         List<int> m_result2 = new List<int>();
         int m_count;
+
+        public override void Test()
+        {
+            TestValidity();
+            TestPerformace();
+        }
 
         public virtual void TestValidity()
         {
