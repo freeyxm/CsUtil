@@ -78,6 +78,18 @@ namespace Test
             }
             Debug.Assert(kcount >= k, "kth wrong!");
 
+            k = data.Length / 10 * 7;
+            TestUtility.RunTime("SelectKth", watch, () =>
+            {
+                kth = Selection.SelectKth(data, k);
+            });
+            int kth2 = -3;
+            TestUtility.RunTime("SelectKthE", watch, () =>
+            {
+                kth2 = Selection.SelectKthE(data, k, 0, maxCount);
+            });
+            Debug.Assert(kth == kth2, "kth != kth2");
+
             Console.WriteLine("Test done.");
         }
 
@@ -102,7 +114,7 @@ namespace Test
                 data = new int[input.Length];
             });
 
-            int kth1 = -1, kth2 = -2, k = data.Length / 10 * 7;
+            int kth1 = -1, kth2 = -2, k = data.Length / 10 * 5;
 
             input.CopyTo(data, 0);
             TestUtility.RunTime("SelectKth", watch, () =>
@@ -113,7 +125,7 @@ namespace Test
             input.CopyTo(data, 0);
             TestUtility.RunTime("SelectKth2", watch, () =>
             {
-                kth2 = Selection.SelectKth2(data, k, 0, maxCount);
+                kth2 = Selection.SelectKthE(data, k, 0, maxCount);
             });
 
             Debug.Assert(kth1 == kth2, "kth1 != kth2");

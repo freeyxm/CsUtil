@@ -133,21 +133,48 @@ namespace CsUtil.Collections.Select
         }
 
         /// <summary>
-        /// 根据值域，估计第一次划分节点的最佳值。
+        /// 通过估值的方式缩小搜索范围。
         /// </summary>
         /// <param name="data"></param>
         /// <param name="k"></param>
         /// <param name="min"></param>
         /// <param name="max"></param>
         /// <returns></returns>
-        public static int SelectKth2(int[] data, int k, int min, int max)
+        public static int SelectKthE(int[] data, int k, int min, int max)
         {
-            int target = min + (int)((long)k * (max - min) / data.Length); // 估计最佳的划分节点。
-            int index = Partition(data, 0, data.Length - 1, target);
-            if (index <= k)
-                return SelectKth(data, index, data.Length - 1, k);
-            else
-                return SelectKth(data, 0, Math.Min(index, data.Length - 1), k);
+            int count = data.Length;
+            int left = 0, right = count - 1;
+            int offset = 0; // 修正估计区间，以防止在某一边小幅度逼近。
+            int limit = (int)Math.Sqrt(data.Length);
+            int iterCount = 0;
+            while (right - left > limit && ++iterCount <= 6)
+            {
+                // offset减半是为了防止在左右对称时，无畏的迭代。
+                int target = min + (int)((long)(k - left + offset / 2) * (max - min) / count);
+                int index = Partition(data, left, right, target);
+                if (index < k)
+                {
+                    offset = k - index; // 实际位置比估计位置靠左，下次估计应往右偏移。
+                    min = target;
+                    count -= index - left;
+                    left = index;
+                }
+                else if (index > k)
+                {
+                    if (index > right)
+                        index = right;
+                    offset = k - index; // 实际位置比估计位置靠右，下次估计应往左偏移。
+                    max = target;
+                    count -= right - index;
+                    right = index;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            //Console.Write(" iterCount = {0}, range = {1}, ", iterCount, right - left);
+            return SelectKth(data, left, right, k);
         }
 
         /// <summary>
