@@ -9,6 +9,12 @@ namespace Test
     {
         public override void Test()
         {
+            //TestValidity();
+            TestSelectKth2();
+        }
+
+        private void TestValidity()
+        {
             Random random = new Random((int)DateTime.Now.Ticks);
             Stopwatch watch = new Stopwatch();
 
@@ -73,6 +79,44 @@ namespace Test
             Debug.Assert(kcount >= k, "kth wrong!");
 
             Console.WriteLine("Test done.");
+        }
+
+        private void TestSelectKth2()
+        {
+            Random random = new Random((int)DateTime.Now.Ticks);
+            Stopwatch watch = new Stopwatch();
+
+            int maxCount = 10000000;
+            int[] data = null, input = null;
+
+            TestUtility.RunTime("Generate data", watch, () =>
+            {
+                if (input == null || input.Length == 0)
+                {
+                    input = new int[maxCount];
+                    for (int i = 0; i < maxCount; ++i)
+                    {
+                        input[i] = random.Next(maxCount);
+                    }
+                    data = new int[input.Length];
+                }
+            });
+
+            int kth1 = -1, kth2 = -2, k = data.Length / 10 * 7;
+
+            input.CopyTo(data, 0);
+            TestUtility.RunTime("SelectKth", watch, () =>
+            {
+                kth1 = Selection.SelectKth(data, k);
+            });
+
+            input.CopyTo(data, 0);
+            TestUtility.RunTime("SelectKth2", watch, () =>
+            {
+                kth2 = Selection.SelectKth2(data, k, 0, maxCount);
+            });
+
+            Debug.Assert(kth1 == kth2, "kth1 != kth2");
         }
     }
 }

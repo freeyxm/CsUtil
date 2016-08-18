@@ -22,7 +22,11 @@ namespace CsUtil.Collections.Select
             if (data.Length == 1)
                 return data[0];
 
-            int left = 0, right = data.Length - 1;
+            return SelectKth(data, 0, data.Length - 1, k);
+        }
+
+        public static T SelectKth<T>(T[] data, int left, int right, int k) where T : IComparable
+        {
             while (true)
             {
                 if (left == right - 1)
@@ -65,7 +69,7 @@ namespace CsUtil.Collections.Select
                     break;
             }
 
-            return data[k];
+            return data[left + k];
         }
 
         public static int SelectKth(int[] data, int k)
@@ -78,8 +82,12 @@ namespace CsUtil.Collections.Select
             if (data.Length == 1)
                 return data[0];
 
-            int left = 0, right = data.Length - 1;
-            while (true)
+            return SelectKth(data, 0, data.Length - 1, k);
+        }
+
+        public static int SelectKth(int[] data, int left, int right, int k)
+        {
+            while (left < right)
             {
                 if (left == right - 1)
                 {
@@ -122,6 +130,24 @@ namespace CsUtil.Collections.Select
             }
 
             return data[k];
+        }
+
+        /// <summary>
+        /// 根据值域，估计第一次划分节点的最佳值。
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="k"></param>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        /// <returns></returns>
+        public static int SelectKth2(int[] data, int k, int min, int max)
+        {
+            int target = min + (int)((long)k * (max - min) / data.Length); // 估计最佳的划分节点。
+            int index = Partition(data, 0, data.Length - 1, target);
+            if (index <= k)
+                return SelectKth(data, index, data.Length - 1, k - index);
+            else
+                return SelectKth(data, 0, index, k);
         }
 
         /// <summary>
@@ -239,6 +265,59 @@ namespace CsUtil.Collections.Select
                 if (d.CompareTo(min) < 0)
                     min = d;
                 else if (d.CompareTo(max) > 0)
+                    max = d;
+            }
+        }
+
+        public static void SelectMinMax(int[] data, out int min, out int max)
+        {
+            if (data == null)
+                throw new NullReferenceException();
+            if (data.Length == 0)
+                throw new IndexOutOfRangeException();
+
+            if (data.Length == 1)
+            {
+                min = max = data[0];
+                return;
+            }
+
+            if (data[0] <= data[1])
+            {
+                min = data[0];
+                max = data[1];
+            }
+            else
+            {
+                min = data[1];
+                max = data[0];
+            }
+            int i;
+            for (i = 2; i < data.Length - 2; i += 2)
+            {
+                int d1 = data[i];
+                int d2 = data[i + 1];
+                if (d1 <= d2)
+                {
+                    if (d1 < min)
+                        min = d1;
+                    if (d2 > max)
+                        max = d2;
+                }
+                else
+                {
+                    if (d2 < min)
+                        min = d2;
+                    if (d1 > max)
+                        max = d1;
+                }
+            }
+            if (i < data.Length - 1)
+            {
+                int d = data[data.Length - 1];
+                if (d < min)
+                    min = d;
+                else if (d > max)
                     max = d;
             }
         }
