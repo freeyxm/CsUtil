@@ -7,8 +7,8 @@
     <ProjectGuid>{98131D90-A25E-4F86-8D90-C02EAC8349BD}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CsNet</RootNamespace>
-    <AssemblyName>CsNet</AssemblyName>
+    <RootNamespace>CsUtil</RootNamespace>
+    <AssemblyName>CsUtil</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
