@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{C401F878-F705-45AE-8E65-8BDCCE6F9594}</ProjectGuid>
+    <ProjectGuid>{26E7FA2B-04C1-43E8-BF7A-596A99687949}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CsUtil.Util</RootNamespace>
-    <AssemblyName>Util</AssemblyName>
+    <RootNamespace>CsUtil</RootNamespace>
+    <AssemblyName>CsUtil</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -43,16 +43,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ActionChain.cs" />
-    <Compile Include="BitOperation.cs" />
-    <Compile Include="CSharpUtil.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Utility.cs" />
+    <Compile Include="Test\ExecTimer.cs" />
+    <Compile Include="Test\TestBase.cs" />
+    <Compile Include="Test\TestUtility.cs" />
+    <Compile Include="Util\ActionChain.cs" />
+    <Compile Include="Util\BitOperation.cs" />
+    <Compile Include="Util\CSharpUtil.cs" />
+    <Compile Include="Util\Utility.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
