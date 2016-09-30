@@ -2,7 +2,7 @@
 
 namespace CsUtil.Test
 {
-    abstract class TestBase
+    public abstract class TestBase
     {
         public abstract void Test();
     }

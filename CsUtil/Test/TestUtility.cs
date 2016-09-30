@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace CsUtil.Test
 {
-    class TestUtility
+    public class TestUtility
     {
         public static void RunTime(string title, Stopwatch watch, Action action)
         {
