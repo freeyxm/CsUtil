@@ -4,15 +4,17 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{98131D90-A25E-4F86-8D90-C02EAC8349BD}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{C401F878-F705-45AE-8E65-8BDCCE6F9594}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CsUtil</RootNamespace>
-    <AssemblyName>CsUtil</AssemblyName>
+    <RootNamespace>CsUtil.Util</RootNamespace>
+    <AssemblyName>Util</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -22,6 +24,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -40,20 +43,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Collections\BinaryTree\AvlTree.cs" />
-    <Compile Include="Collections\BinaryTree\BinaryTree.cs" />
-    <Compile Include="Collections\BinaryTree\Cache.cs" />
-    <Compile Include="Collections\BinaryTree\IBinaryTree.cs" />
-    <Compile Include="Collections\BinaryTree\RBTree.cs" />
-    <Compile Include="Collections\Select\Selection.cs" />
+    <Compile Include="ActionChain.cs" />
+    <Compile Include="BitOperation.cs" />
+    <Compile Include="CSharpUtil.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Util\ActionChain.cs" />
-    <Compile Include="Util\BitOperation.cs" />
-    <Compile Include="Util\CSharpUtil.cs" />
-    <Compile Include="Util\ExecTimer.cs" />
-    <Compile Include="Util\Utility.cs" />
+    <Compile Include="Utility.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

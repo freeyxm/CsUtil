@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace Test
+namespace CsUtil.Test
 {
     class TestUtility
     {

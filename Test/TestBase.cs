@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Test
+namespace CsUtil.Test
 {
     abstract class TestBase
     {
