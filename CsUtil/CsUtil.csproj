@@ -47,7 +47,10 @@
     <Compile Include="Collections\BinaryTree\RBTree.cs" />
     <Compile Include="Collections\Select\Selection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Util\ActionChain.cs" />
     <Compile Include="Util\BitOperation.cs" />
+    <Compile Include="Util\CSharpUtil.cs" />
+    <Compile Include="Util\ExecTimer.cs" />
     <Compile Include="Util\Utility.cs" />
   </ItemGroup>
   <ItemGroup />
