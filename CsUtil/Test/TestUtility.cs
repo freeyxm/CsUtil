@@ -9,7 +9,8 @@ namespace CsUtil.Test
         public static void RunTime(string title, Stopwatch watch, Action action)
         {
             Console.Write("Start {0} ...", title);
-            watch.Restart();
+            watch.Reset();
+            watch.Start();
             action();
             watch.Stop();
             Console.WriteLine(" {0} ms", watch.ElapsedMilliseconds);
