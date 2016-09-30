@@ -84,7 +84,7 @@ namespace Test
             m_result = m_result2;
             m_result.Clear();
             tree.TraversePreOrder(Traverse);
-            Debug.Assert(Utility.Equals(m_result1, m_result2), "Valid PreOrder failed!");
+            Debug.Assert(Utility.IsEqual(m_result1, m_result2), "Valid PreOrder failed!");
 
             // 校验中序
             Console.WriteLine("Valid InOrder ...");
@@ -94,7 +94,7 @@ namespace Test
             m_result = m_result2;
             m_result.Clear();
             tree.TraverseInOrder(Traverse);
-            Debug.Assert(Utility.Equals(m_result1, m_result2), "Valid InOrder failed!");
+            Debug.Assert(Utility.IsEqual(m_result1, m_result2), "Valid InOrder failed!");
 
             // 校验后序
             Console.WriteLine("Valid PostOrder ...");
@@ -104,7 +104,7 @@ namespace Test
             m_result = m_result2;
             m_result.Clear();
             tree.TraversePostOrder(Traverse);
-            Debug.Assert(Utility.Equals(m_result1, m_result2), "Valid PostOrder failed!");
+            Debug.Assert(Utility.IsEqual(m_result1, m_result2), "Valid PostOrder failed!");
 
             // 校验删除
             Console.WriteLine("Valid Remove ...");
