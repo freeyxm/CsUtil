@@ -53,7 +53,11 @@
     <Compile Include="Util\ActionChain.cs" />
     <Compile Include="Util\BitOperation.cs" />
     <Compile Include="Util\CSharpUtil.cs" />
+    <Compile Include="Util\FileUtil.cs" />
+    <Compile Include="Util\Logger.cs" />
+    <Compile Include="Util\Md5Util.cs" />
     <Compile Include="Util\Utility.cs" />
+    <Compile Include="Util\XmlUtil.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
