@@ -15,7 +15,22 @@ namespace CsUtil.Util
 
         private static void Write(LogLevel level, string msg)
         {
+#if UNITY_ANDROID || UNITY_IPHONE || UNITY_EDITOR
+            switch (level)
+            {
+                case LogLevel.Error:
+                    Debuger.LogError(msg);
+                    break;
+                case LogLevel.Warning:
+                    Debuger.LogWarning(msg);
+                    break;
+                default:
+                    Debuger.Log(msg);
+                    break;
+            }
+#else
             Console.WriteLine("[{0}] {1}", level, msg);
+#endif
         }
 
         public static void Log(LogLevel level, string msg)

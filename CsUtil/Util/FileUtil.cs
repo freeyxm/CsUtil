@@ -32,6 +32,39 @@ namespace CsUtil.Util
             }
         }
 
+        public static bool OpenFile(string path, System.Action<FileStream> action)
+        {
+            FileStream stream = null;
+            try
+            {
+                stream = new FileStream(path, FileMode.Open);
+                action(stream);
+                return true;
+            }
+            catch (Exception e)
+            {
+                Logger.Error("OpenFile error: path = '{0}', error = {0}", path, e.Message);
+                return false;
+            }
+            finally
+            {
+                if (stream != null) stream.Close();
+            }
+        }
+
+        public static string ReadFile(string path)
+        {
+            string result = null;
+            OpenFile(path, (stream) =>
+            {
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    result = reader.ReadToEnd();
+                }
+            });
+            return result;
+        }
+
         public static bool DeleteFile(string path)
         {
             try
