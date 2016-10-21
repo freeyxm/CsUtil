@@ -32,8 +32,9 @@ namespace CsUtil.Util
                 file = new FileStream(path, FileMode.Open);
                 return Md5Sum(file);
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Logger.Error(e.Message);
                 return "";
             }
             finally
@@ -42,14 +43,29 @@ namespace CsUtil.Util
             }
         }
 
+        public static bool CheckMd5(byte[] bytes, string md5)
+        {
+            return CompareMd5(Md5Sum(bytes), md5);
+        }
+
+        public static bool CheckMd5(Stream inputStream, string md5)
+        {
+            return CompareMd5(Md5Sum(inputStream), md5);
+        }
+
         public static bool CheckMd5(string str, string md5)
         {
-            return string.Equals(Md5Sum(str), md5, StringComparison.OrdinalIgnoreCase);
+            return CompareMd5(Md5Sum(str), md5);
         }
 
         public static bool CheckMd5File(string path, string md5)
         {
-            return string.Equals(Md5SumFile(path), md5, StringComparison.OrdinalIgnoreCase);
+            return CompareMd5(Md5SumFile(path), md5);
+        }
+
+        public static bool CompareMd5(string m1, string m2)
+        {
+            return string.Equals(m1, m2, StringComparison.OrdinalIgnoreCase);
         }
 
         public static string ToHexStr(byte[] bytes)
