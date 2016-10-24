@@ -13,24 +13,29 @@ namespace CsUtil.Util
         }
         public static LogLevel logLevel { get; set; }
 
+        private static object m_lock = new object();
+
         private static void Write(LogLevel level, string msg)
         {
-#if UNITY_ANDROID || UNITY_IPHONE || UNITY_EDITOR
-            switch (level)
+            lock (m_lock)
             {
-                case LogLevel.Error:
-                    Debuger.LogError(msg);
-                    break;
-                case LogLevel.Warning:
-                    Debuger.LogWarning(msg);
-                    break;
-                default:
-                    Debuger.Log(msg);
-                    break;
-            }
+#if UNITY_ANDROID || UNITY_IPHONE || UNITY_EDITOR
+                switch (level)
+                {
+                    case LogLevel.Error:
+                        Debuger.LogError(msg);
+                        break;
+                    case LogLevel.Warning:
+                        Debuger.LogWarning(msg);
+                        break;
+                    default:
+                        Debuger.Log(msg);
+                        break;
+                }
 #else
-            Console.WriteLine("[{0}] {1}", level, msg);
+                Console.WriteLine("[{0}] {1}", level, msg);
 #endif
+            }
         }
 
         public static void Log(LogLevel level, string msg)
