@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Reflection;
 
 namespace CsUtil.Util
 {
@@ -71,6 +69,17 @@ namespace CsUtil.Util
                     }
                 }
             }
+        }
+
+        public static int GetCharCount(string str, char ch)
+        {
+            int count = 0;
+            for (int i = 0; i < str.Length; ++i)
+            {
+                if (str[i] == ch)
+                    ++count;
+            }
+            return count;
         }
     }
 }

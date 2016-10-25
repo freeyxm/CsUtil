@@ -81,5 +81,36 @@ namespace CsUtil.Util
                 return false;
             }
         }
+
+        /// <summary>
+        /// 获取指定目录的父目录。
+        /// 1. 需自行保证目录分割符为"/".
+        /// 2. 返回目录中一般带有"/".
+        /// </summary>
+        /// <param name="dir"></param>
+        /// <returns></returns>
+        public static string GetDirParent(string dir)
+        {
+            for (int i = dir.Length - 2; i >= 0; --i)
+            {
+                if (dir[i] == '/')
+                    return dir.Substring(0, i + 1);
+            }
+            return "";
+        }
+
+        /// <summary>
+        /// 获取文件的父目录。
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        public static string GetFileParent(string file)
+        {
+            int index = file.LastIndexOf('/');
+            if (index != -1)
+                return file.Substring(0, index + 1);
+            else
+                return "";
+        }
     }
 }
