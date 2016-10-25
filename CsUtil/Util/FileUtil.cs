@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 
 namespace CsUtil.Util
 {
@@ -111,6 +112,20 @@ namespace CsUtil.Util
                 return file.Substring(0, index + 1);
             else
                 return "";
+        }
+
+        /// <summary>
+        /// 连接两个路径
+        /// </summary>
+        /// <param name="path1"></param>
+        /// <param name="path2"></param>
+        /// <returns></returns>
+        public static string CombinePath(string path1, string path2)
+        {
+            if (path1.EndsWith("/") || path2.StartsWith("/"))
+                return path1 + path2;
+            else
+                return new StringBuilder(path1).Append("/").Append(path2).ToString();
         }
     }
 }
