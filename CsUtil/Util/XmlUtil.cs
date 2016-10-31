@@ -16,7 +16,7 @@ namespace CsUtil.Util
         /// <param name="type">类型</param>
         /// <param name="xml">XML字符串</param>
         /// <returns></returns>
-        public static object Deserialize(Type type, string xml)
+        public static object Deserialize(string xml, Type type)
         {
             try
             {
@@ -58,7 +58,7 @@ namespace CsUtil.Util
         /// <param name="type"></param>
         /// <param name="xml"></param>
         /// <returns></returns>
-        public static object Deserialize(Type type, Stream stream)
+        public static object Deserialize(Stream stream, Type type)
         {
             try
             {
@@ -96,7 +96,7 @@ namespace CsUtil.Util
         /// <param name="type">类型</param>
         /// <param name="obj">对象</param>
         /// <returns></returns>
-        public static string Serializer(Type type, object obj)
+        public static string Serializer(object obj, Type type)
         {
             string result = null;
             MemoryStream stream = new MemoryStream();
