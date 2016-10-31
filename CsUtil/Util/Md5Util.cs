@@ -5,7 +5,7 @@ using System.Text;
 
 namespace CsUtil.Util
 {
-    class Md5Util
+    public class Md5Util
     {
         private static MD5 m_md5 = new MD5CryptoServiceProvider();
 
