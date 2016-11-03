@@ -198,7 +198,11 @@ namespace CsUtil.Util
         /// <returns></returns>
         public static string CombinePath(string path1, string path2)
         {
-            if (path1.EndsWith("/") || path2.StartsWith("/"))
+            if (string.IsNullOrEmpty(path1))
+                return path2;
+            else if (string.IsNullOrEmpty(path2))
+                return path1;
+            else if (path1.EndsWith("/") || path2.StartsWith("/"))
                 return path1 + path2;
             else
                 return new StringBuilder(path1).Append("/").Append(path2).ToString();
