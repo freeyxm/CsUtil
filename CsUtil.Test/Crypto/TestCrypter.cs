@@ -3,9 +3,8 @@ using System.Text;
 using System.IO;
 using CsUtil.Crypto;
 using CsUtil.Util;
-using CsUtil.Test;
 
-namespace Test.Crypto
+namespace CsUtil.Test.Crypto
 {
     class TestCrypter : TestBase
     {
