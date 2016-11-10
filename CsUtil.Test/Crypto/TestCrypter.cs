@@ -13,11 +13,13 @@ namespace CsUtil.Test.Crypto
             string str = "abcde12345";
             string str2 = "1234567890";
 
-            CrypterDES encryptor = new CrypterDES();
-            CrypterDES decryptor = new CrypterDES();
+            CrypterAES encryptor = new CrypterAES();
+            CrypterAES decryptor = new CrypterAES();
 
             //encryptor.RandomKey();
             //decryptor.SetKey(encryptor.Key, encryptor.IV);
+            encryptor.SetKey("123", "abc");
+            decryptor.SetKey("123", "abc");
 
             do
             {

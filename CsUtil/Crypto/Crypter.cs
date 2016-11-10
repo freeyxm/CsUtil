@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography;
 using System.IO;
+using System.Text;
 using CsUtil.Util;
 
 namespace CsUtil.Crypto
@@ -62,8 +63,22 @@ namespace CsUtil.Crypto
 
         public void SetKey(string key, string IV)
         {
-            // ...
+            byte[] keyBytes = GetPasswordBytes(key, m_algorithm.LegalKeySizes[0].MinSize / 8);
+            byte[] ivBytes = GetPasswordBytes(IV, m_algorithm.LegalBlockSizes[0].MinSize / 8);
+            SetKey(keyBytes, ivBytes);
         }
+
+        private byte[] _rgbSalt;
+        private byte[] GetPasswordBytes(string key, int cb)
+        {
+            if (_rgbSalt == null)
+            {
+                _rgbSalt = Encoding.ASCII.GetBytes("1a7b58fc65e5310e320be7a8fdd0c950"); // random
+            }
+            PasswordDeriveBytes _passwordBytes = new PasswordDeriveBytes(key, _rgbSalt, "SHA1", 2);
+            return _passwordBytes.GetBytes(cb);
+        }
+
 
         /// <summary>
         /// 加密数据块
