@@ -247,7 +247,7 @@ namespace CsUtil.Crypto
             }
             if (m_algorithm != null)
             {
-                m_algorithm.Dispose();
+                m_algorithm.Clear();
                 m_algorithm = null;
             }
         }
