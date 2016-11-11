@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace CsUtil.Util
 {
@@ -93,6 +94,17 @@ namespace CsUtil.Util
         public static bool OpenFile(string path, Func<FileStream, bool> action)
         {
             return OpenFile(path, FileMode.Open, action);
+        }
+
+        public static bool OpenFile(string inFile, string outFile, Action<FileStream, FileStream> action)
+        {
+            return OpenFile(inFile, FileMode.Open, (inStream) =>
+            {
+                return OpenFile(outFile, FileMode.Create, (outStream) =>
+                {
+                    action(inStream, outStream);
+                });
+            });
         }
 
         public static bool OpenFile(string inFile, string outFile, Func<FileStream, FileStream, bool> action)
@@ -206,6 +218,95 @@ namespace CsUtil.Util
                 return path1 + path2;
             else
                 return new StringBuilder(path1).Append("/").Append(path2).ToString();
+        }
+
+        /// <summary>
+        /// 格式化路径。
+        /// 替换"\\"为"/"；若是目录，结尾为"/"。
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="isDir"></param>
+        /// <returns></returns>
+        public static string FormatPath(string path, bool isDir)
+        {
+            if (path.Contains("\\"))
+                path = path.Replace("\\", "/");
+            if (isDir && !path.EndsWith("/"))
+                path += "/";
+            return path;
+        }
+
+        /// <summary>
+        /// 遍历指定目录下的所有文件。
+        /// </summary>
+        /// <param name="inPath">输入路径</param>
+        /// <param name="excludePattern">排除文件的正则表达式</param>
+        /// <param name="action">回调，参数为当前文件</param>
+        /// <param name="progress">进度，参数分别为：当前索引(从1开始)，总个数，当前文件</param>
+        public static void ForeachFiles(string inPath, string excludePattern,
+            Action<string> action, Action<int, int, string> progress = null)
+        {
+            string[] files = Directory.GetFiles(inPath, "*", SearchOption.AllDirectories);
+            for (int i = 0; i < files.Length; ++i)
+            {
+                string inFile = files[i];
+
+                if (progress != null)
+                {
+                    progress(i + 1, files.Length, inFile);
+                }
+
+                if (!string.IsNullOrEmpty(excludePattern) && Regex.IsMatch(inFile, excludePattern))
+                    continue;
+
+                action(inFile);
+            }
+        }
+
+        /// <summary>
+        /// 遍历指定目录下的所有文件，并拼接成对应的输出文件（不创建文件）。
+        /// </summary>
+        /// <param name="inPath"></param>
+        /// <param name="outPath"></param>
+        /// <param name="excludePattern"></param>
+        /// <param name="action"></param>
+        /// <param name="progress"></param>
+        public static void ForeachFiles(string inPath, string outPath, string excludePattern,
+            Action<string, string> action, Action<int, int, string> progress = null)
+        {
+            inPath = FormatPath(inPath, true);
+            outPath = FormatPath(outPath, true);
+
+            ForeachFiles(inPath, excludePattern, (inFile) =>
+            {
+                string outFile = outPath + inFile.Substring(inPath.Length);
+                action(inFile, outFile);
+            }, progress);
+        }
+
+        /// <summary>
+        /// 遍历指定目录下的所有文件，并创建对应的输出文件。
+        /// </summary>
+        /// <param name="inPath"></param>
+        /// <param name="outPath"></param>
+        /// <param name="excludePattern"></param>
+        /// <param name="action"></param>
+        /// <param name="progress"></param>
+        public static void ForeachFiles(string inPath, string outPath, string excludePattern,
+            Action<Stream, Stream> action, Action<int, int, string> progress = null)
+        {
+            ForeachFiles(inPath, outPath, excludePattern, (inFile, outFile) =>
+            {
+                string outDir = Directory.GetParent(outFile).FullName;
+                if (!Directory.Exists(outDir))
+                {
+                    Directory.CreateDirectory(outDir);
+                }
+                OpenFile(inFile, outFile, (inStream, outStream) =>
+                {
+                    action(inStream, outStream);
+                });
+            }, progress);
         }
     }
 }
