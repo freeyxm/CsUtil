@@ -9,8 +9,6 @@ namespace CsUtil.Crypto
     public class Crypter<T> : IDisposable where T : SymmetricAlgorithm, new()
     {
         protected T m_algorithm;
-        protected ICryptoTransform m_encryptor;
-        protected ICryptoTransform m_decryptor;
 
         public Crypter()
         {
@@ -51,14 +49,12 @@ namespace CsUtil.Crypto
         {
             m_algorithm.GenerateKey();
             m_algorithm.GenerateIV();
-            KeyObsolete();
         }
 
         public void SetKey(byte[] key, byte[] IV)
         {
             m_algorithm.Key = key;
             m_algorithm.IV = IV;
-            KeyObsolete();
         }
 
         public void SetKey(string key, string IV)
@@ -90,11 +86,9 @@ namespace CsUtil.Crypto
             byte[] output = null;
             try
             {
-                if (m_encryptor == null)
-                    m_encryptor = m_algorithm.CreateEncryptor();
-
+                using (var encryptor = m_algorithm.CreateEncryptor())
                 using (MemoryStream memoryStream = new MemoryStream())
-                using (CryptoStream cryptoStream = new CryptoStream(memoryStream, m_encryptor, CryptoStreamMode.Write))
+                using (CryptoStream cryptoStream = new CryptoStream(memoryStream, encryptor, CryptoStreamMode.Write))
                 {
                     cryptoStream.Write(data, 0, data.Length);
                     cryptoStream.FlushFinalBlock();
@@ -119,11 +113,9 @@ namespace CsUtil.Crypto
             byte[] output = null;
             try
             {
-                if (m_decryptor == null)
-                    m_decryptor = m_algorithm.CreateDecryptor();
-
+                using (var decryptor = m_algorithm.CreateDecryptor())
                 using (MemoryStream memoryStream = new MemoryStream(data))
-                using (CryptoStream cryptoStream = new CryptoStream(memoryStream, m_decryptor, CryptoStreamMode.Read))
+                using (CryptoStream cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read))
                 {
                     byte[] buffer = new byte[data.Length];
                     int readLen = cryptoStream.Read(buffer, 0, buffer.Length);
@@ -159,12 +151,10 @@ namespace CsUtil.Crypto
         {
             try
             {
-                if (m_encryptor == null)
-                    m_encryptor = m_algorithm.CreateEncryptor();
-
-                using (CryptoStream cryptoStream = new CryptoStream(outStream, m_encryptor, CryptoStreamMode.Write))
+                using (var encryptor = m_algorithm.CreateEncryptor())
+                using (CryptoStream cryptoStream = new CryptoStream(outStream, encryptor, CryptoStreamMode.Write))
                 {
-                    int BUFFER_LEN = m_encryptor.InputBlockSize * 10;
+                    int BUFFER_LEN = encryptor.InputBlockSize * 10;
                     byte[] buffer = new byte[BUFFER_LEN];
                     while (true)
                     {
@@ -194,12 +184,10 @@ namespace CsUtil.Crypto
         {
             try
             {
-                if (m_decryptor == null)
-                    m_decryptor = m_algorithm.CreateDecryptor();
-
-                using (CryptoStream cryptoStream = new CryptoStream(inStream, m_decryptor, CryptoStreamMode.Read))
+                using (var decryptor = m_algorithm.CreateDecryptor())
+                using (CryptoStream cryptoStream = new CryptoStream(inStream, decryptor, CryptoStreamMode.Read))
                 {
-                    int BUFFER_LEN = m_decryptor.OutputBlockSize * 10;
+                    int BUFFER_LEN = decryptor.OutputBlockSize * 10;
                     byte[] buffer = new byte[BUFFER_LEN];
                     while (true)
                     {
@@ -219,32 +207,8 @@ namespace CsUtil.Crypto
             }
         }
 
-        private void KeyObsolete()
-        {
-            if (m_encryptor != null)
-            {
-                m_encryptor.Dispose();
-                m_encryptor = null;
-            }
-            if (m_decryptor != null)
-            {
-                m_decryptor.Dispose();
-                m_decryptor = null;
-            }
-        }
-
         public void Dispose()
         {
-            if (m_encryptor != null)
-            {
-                m_encryptor.Dispose();
-                m_encryptor = null;
-            }
-            if (m_decryptor != null)
-            {
-                m_decryptor.Dispose();
-                m_decryptor = null;
-            }
             if (m_algorithm != null)
             {
                 m_algorithm.Clear();
