@@ -90,6 +90,8 @@ namespace CsUtil.Crypto
                 using (MemoryStream memoryStream = new MemoryStream())
                 using (CryptoStream cryptoStream = new CryptoStream(memoryStream, encryptor, CryptoStreamMode.Write))
                 {
+                    byte[] lenBytes = BitConverter.GetBytes((int)data.Length);
+                    cryptoStream.Write(lenBytes, 0, lenBytes.Length); // 存储数据长度，以减少解密时的内存拷贝。
                     cryptoStream.Write(data, 0, data.Length);
                     cryptoStream.FlushFinalBlock();
                     output = memoryStream.ToArray();
@@ -117,20 +119,18 @@ namespace CsUtil.Crypto
                 using (MemoryStream memoryStream = new MemoryStream(data))
                 using (CryptoStream cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read))
                 {
-                    byte[] buffer = new byte[data.Length];
-                    int readLen = cryptoStream.Read(buffer, 0, buffer.Length);
-                    if (readLen > 0)
-                    {
-                        if (readLen != buffer.Length)
-                        {
-                            output = new byte[readLen]; // 无法预先知道data长度，多一次内存拷贝！
-                            Buffer.BlockCopy(buffer, 0, output, 0, readLen);
-                        }
-                        else
-                        {
-                            output = buffer;
-                        }
-                    }
+                    byte[] lenBytes = new byte[sizeof(int)];
+                    int readLen = cryptoStream.Read(lenBytes, 0, lenBytes.Length);
+                    if (readLen != lenBytes.Length)
+                        throw new Exception("data corrupted.");
+
+                    int dataLen = BitConverter.ToInt32(lenBytes, 0);
+                    byte[] buffer = new byte[dataLen];
+                    readLen = cryptoStream.Read(buffer, 0, buffer.Length);
+                    if (readLen != dataLen)
+                        throw new Exception("data corrupted.");
+
+                    output = buffer;
                 }
             }
             catch (Exception e)
