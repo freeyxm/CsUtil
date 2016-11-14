@@ -246,10 +246,13 @@ namespace CsUtil.Util
         public static void ForeachFiles(string inPath, string excludePattern,
             Action<string> action, Action<int, int, string> progress = null)
         {
+            if (!Directory.Exists(inPath))
+                return;
+
             string[] files = Directory.GetFiles(inPath, "*", SearchOption.AllDirectories);
             for (int i = 0; i < files.Length; ++i)
             {
-                string inFile = files[i];
+                string inFile = FormatPath(files[i], false);
 
                 if (progress != null)
                 {
@@ -264,14 +267,15 @@ namespace CsUtil.Util
         }
 
         /// <summary>
-        /// 遍历指定目录下的所有文件，并拼接成对应的输出文件（不创建文件）。
+        /// 遍历指定目录下的所有文件，并拼接成对应的输出文件路径（不创建文件）。
         /// </summary>
         /// <param name="inPath"></param>
         /// <param name="outPath"></param>
         /// <param name="excludePattern"></param>
+        /// <param name="appendMode">为true时，只有输入文件比输出文件新时才执行操作</param>
         /// <param name="action"></param>
         /// <param name="progress"></param>
-        public static void ForeachFiles(string inPath, string outPath, string excludePattern,
+        public static void ForeachFiles(string inPath, string outPath, string excludePattern, bool appendMode,
             Action<string, string> action, Action<int, int, string> progress = null)
         {
             inPath = FormatPath(inPath, true);
@@ -280,22 +284,33 @@ namespace CsUtil.Util
             ForeachFiles(inPath, excludePattern, (inFile) =>
             {
                 string outFile = outPath + inFile.Substring(inPath.Length);
+                if (appendMode)
+                {
+                    if (File.Exists(outFile))
+                    {
+                        var inFileInfo = new FileInfo(inFile);
+                        var outFileInfo = new FileInfo(outFile);
+                        if (outFileInfo.LastWriteTime >= inFileInfo.LastWriteTime)
+                            return;
+                    }
+                }
                 action(inFile, outFile);
             }, progress);
         }
 
         /// <summary>
-        /// 遍历指定目录下的所有文件，并创建对应的输出文件。
+        /// 遍历指定目录下的所有文件，并创建对应的输入/输出文件流。
         /// </summary>
         /// <param name="inPath"></param>
         /// <param name="outPath"></param>
         /// <param name="excludePattern"></param>
+        /// <param name="appendMode"></param>
         /// <param name="action"></param>
         /// <param name="progress"></param>
-        public static void ForeachFiles(string inPath, string outPath, string excludePattern,
+        public static void ForeachFiles(string inPath, string outPath, string excludePattern, bool appendMode,
             Action<Stream, Stream> action, Action<int, int, string> progress = null)
         {
-            ForeachFiles(inPath, outPath, excludePattern, (inFile, outFile) =>
+            ForeachFiles(inPath, outPath, excludePattern, appendMode, (inFile, outFile) =>
             {
                 string outDir = Directory.GetParent(outFile).FullName;
                 if (!Directory.Exists(outDir))
