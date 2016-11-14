@@ -5,30 +5,27 @@ namespace CsUtil.Util
 {
     public class ActionChain
     {
-        public delegate void ActionNode(System.Action next);
-        private Queue<ActionNode> m_queue;
+        private Queue<Func<bool>> m_queue;
         private bool m_bDone;
 
         public ActionChain()
         {
-            m_queue = new Queue<ActionNode>();
+            m_queue = new Queue<Func<bool>>();
             m_bDone = true;
         }
 
-        /// <summary>
-        /// action must call next function, otherwise chain will broken.
-        /// </summary>
-        /// <param name="action"></param>
-        public void Enqueue(ActionNode action)
+        public void Add(Func<bool> action)
         {
             m_queue.Enqueue(action);
         }
 
-        public void Execute()
+        public void Execute(Action onFinish = null)
         {
             m_bDone = false;
-            Enqueue(OnActionDone);
             DoAction();
+            m_bDone = true;
+
+            onFinish?.Invoke();
         }
 
         public bool IsDone()
@@ -36,8 +33,9 @@ namespace CsUtil.Util
             return m_bDone;
         }
 
-        private void OnActionDone(System.Action next)
+        public void Clear()
         {
+            m_queue.Clear();
             m_bDone = true;
         }
 
@@ -45,29 +43,36 @@ namespace CsUtil.Util
         {
             if (m_queue.Count > 0)
             {
-                ActionNode action = m_queue.Dequeue();
-                action(DoAction);
+                Func<bool> action = m_queue.Dequeue();
+                if (action())
+                {
+                    DoAction();
+                    return;
+                }
             }
         }
 
         public void Demo()
         {
-            ActionNode act1 = (System.Action next) =>
+            Func<bool> act1 = () =>
             {
-                // do something ...
-                if (next != null) next();
+                Console.WriteLine("action 1");
+                return true;
             };
 
-            ActionNode act2 = (System.Action next) =>
+            Func<bool> act2 = () =>
             {
-                // do something ...
-                if (next != null) next();
+                Console.WriteLine("action 2");
+                return true;
             };
 
             ActionChain chain = new ActionChain();
-            chain.Enqueue(act1);
-            chain.Enqueue(act2);
-            chain.Execute();
+            chain.Add(act1);
+            chain.Add(act2);
+            chain.Execute(() =>
+            {
+                Console.WriteLine("action done");
+            });
         }
     }
 }
