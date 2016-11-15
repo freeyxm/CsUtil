@@ -118,6 +118,23 @@ namespace CsUtil.Util
             });
         }
 
+        public static bool DeleteFile(string path)
+        {
+            try
+            {
+                if (File.Exists(path))
+                {
+                    File.Delete(path);
+                }
+                return true;
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e.Message);
+                return false;
+            }
+        }
+
         public static bool WriteFile(string path, byte[] data)
         {
             try
@@ -141,21 +158,9 @@ namespace CsUtil.Util
             }
         }
 
-        public static bool DeleteFile(string path)
+        public static bool WriteFile(string path, string str)
         {
-            try
-            {
-                if (File.Exists(path))
-                {
-                    File.Delete(path);
-                }
-                return true;
-            }
-            catch (Exception e)
-            {
-                Logger.Error(e.Message);
-                return false;
-            }
+            return WriteFile(path, Encoding.UTF8.GetBytes(str));
         }
 
         public static string ReadFile(string path)
@@ -163,7 +168,7 @@ namespace CsUtil.Util
             string result = null;
             OpenFile(path, (stream) =>
             {
-                using (StreamReader reader = new StreamReader(stream))
+                using (StreamReader reader = new StreamReader(stream, Encoding.UTF8))
                 {
                     result = reader.ReadToEnd();
                 }
