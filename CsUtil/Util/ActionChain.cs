@@ -25,7 +25,8 @@ namespace CsUtil.Util
             DoAction();
             m_bDone = true;
 
-            onFinish?.Invoke();
+            if (onFinish != null)
+                onFinish();
         }
 
         public bool IsDone()
