@@ -5,18 +5,25 @@ namespace CsUtil.Util
 {
     public class Utility
     {
+        public static void Swap<T>(ref T v1, ref T v2)
+        {
+            T tmp = v1;
+            v1 = v2;
+            v2 = tmp;
+        }
+
         #region Equals
         public const float FLOAT_PRECISION = 1E-7f;
         public const double DOUBLE_PRECISION = 1E-15d;
 
         public static bool IsEqualZero(float value)
         {
-            return -FLOAT_PRECISION <= value && value <= FLOAT_PRECISION;
+            return -FLOAT_PRECISION < value && value < FLOAT_PRECISION;
         }
 
         public static bool IsEqualZero(double value)
         {
-            return -DOUBLE_PRECISION <= value && value <= DOUBLE_PRECISION;
+            return -DOUBLE_PRECISION < value && value < DOUBLE_PRECISION;
         }
 
         public static bool IsEqual(float v1, float v2)
