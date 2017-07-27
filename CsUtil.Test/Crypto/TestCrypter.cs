@@ -6,9 +6,9 @@ using CsUtil.Util;
 
 namespace CsUtil.Test.Crypto
 {
-    class TestCrypter : TestBase
+    class TestCrypter : TestBase<TestCrypter>
     {
-        public override void Test()
+        protected override void Test()
         {
             string str = "abcde12345";
             string str2 = "1234567890";

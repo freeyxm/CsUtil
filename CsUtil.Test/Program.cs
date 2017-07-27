@@ -6,9 +6,9 @@ namespace CsUtil.Test
     {
         static void Main(string[] args)
         {
-            new Crypto.TestCrypter().Test();
+            new Crypto.TestCrypter().RunTest();
 
-            new Util.ActionChainTest().Test();
+            new Util.ActionChainTest().RunTest();
 
             Console.Read();
         }

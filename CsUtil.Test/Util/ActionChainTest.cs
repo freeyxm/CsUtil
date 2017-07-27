@@ -3,19 +3,19 @@ using CsUtil.Util;
 
 namespace CsUtil.Test.Util
 {
-    public class ActionChainTest : TestBase
+    public class ActionChainTest : TestBase<ActionChainTest>
     {
-        public override void Test()
+        protected override void Test()
         {
             Func<bool> act1 = () =>
             {
-                Console.WriteLine("action 1");
+                Logger.Debug("action 1");
                 return true;
             };
 
             Func<bool> act2 = () =>
             {
-                Console.WriteLine("action 2");
+                Logger.Debug("action 2");
                 return true;
             };
 
@@ -24,7 +24,7 @@ namespace CsUtil.Test.Util
             chain.Add(act2);
             chain.Execute(() =>
             {
-                Console.WriteLine("action done");
+                Logger.Debug("action done");
             });
         }
     }
