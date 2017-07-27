@@ -8,6 +8,8 @@ namespace CsUtil.Test
         {
             new Crypto.TestCrypter().Test();
 
+            new Util.ActionChainTest().Test();
+
             Console.Read();
         }
     }

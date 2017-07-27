@@ -42,38 +42,14 @@ namespace CsUtil.Util
 
         private void DoAction()
         {
-            if (m_queue.Count > 0)
+            while (m_queue.Count > 0)
             {
                 Func<bool> action = m_queue.Dequeue();
-                if (action())
+                if (!action())
                 {
-                    DoAction();
-                    return;
+                    break;
                 }
             }
-        }
-
-        public void Demo()
-        {
-            Func<bool> act1 = () =>
-            {
-                Console.WriteLine("action 1");
-                return true;
-            };
-
-            Func<bool> act2 = () =>
-            {
-                Console.WriteLine("action 2");
-                return true;
-            };
-
-            ActionChain chain = new ActionChain();
-            chain.Add(act1);
-            chain.Add(act2);
-            chain.Execute(() =>
-            {
-                Console.WriteLine("action done");
-            });
         }
     }
 }

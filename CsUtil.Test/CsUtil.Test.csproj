@@ -45,6 +45,7 @@
   <ItemGroup>
     <Compile Include="Crypto\TestCrypter.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="Util\ActionChainTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
