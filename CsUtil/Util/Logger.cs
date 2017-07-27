@@ -33,7 +33,8 @@ namespace CsUtil.Util
                         break;
                 }
 #else
-                Console.WriteLine("[{0}] {1}", level, msg);
+                string time = DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss.fff");
+                Console.WriteLine("{0} [{1}] {2}", time, level, msg);
 #endif
             }
         }
