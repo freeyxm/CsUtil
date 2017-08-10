@@ -9,9 +9,10 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CsUtil</RootNamespace>
     <AssemblyName>CsUtil</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -63,7 +64,8 @@
     <Compile Include="Util\Md5Util.cs" />
     <Compile Include="Util\Singleton.cs" />
     <Compile Include="Util\Utility.cs" />
-    <Compile Include="Util\XmlUtil.cs" />
+    <Compile Include="Xml\XmlHelper.cs" />
+    <Compile Include="Xml\XmlUtil.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

@@ -1,8 +1,9 @@
 ﻿using System;
 using System.IO;
 using System.Xml.Serialization;
+using CsUtil.Util;
 
-namespace CsUtil.Util
+namespace CsUtil.Xml
 {
     /// <summary>
     /// Xml序列化与反序列化

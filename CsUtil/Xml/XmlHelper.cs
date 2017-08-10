@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Xml;
+using CsUtil.Util;
 
-namespace CsUtil.Util
+namespace CsUtil.Xml
 {
     public class XmlHelper
     {
