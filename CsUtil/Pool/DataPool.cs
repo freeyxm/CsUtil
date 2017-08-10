@@ -18,7 +18,7 @@ namespace CsUtil.Pool
 
         public DataPool(int capacity)
         {
-            m_capacity = Math.Max(0, capacity);
+            SetCapacity(capacity);
         }
 
         public void SetCapacity(int capacity)
@@ -58,7 +58,10 @@ namespace CsUtil.Pool
         public void Release()
         {
             Clear();
-            m_instance = null;
+            if (m_instance == this)
+            {
+                m_instance = null;
+            }
         }
     }
 }

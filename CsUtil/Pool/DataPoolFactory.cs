@@ -12,7 +12,7 @@ namespace CsUtil.Pool
             if (DataPool<T>.Instance != null)
             {
                 DataPool<T>.Instance.SetCapacity(capacity);
-                if (m_poolList.Contains(DataPool<T>.Instance) == false)
+                if (!m_poolList.Contains(DataPool<T>.Instance))
                 {
                     m_poolList.Add(DataPool<T>.Instance);
                 }

@@ -9,7 +9,7 @@ namespace CsUtil.Pool
             if (DataPool<T>.Instance != null)
                 return DataPool<T>.Instance.Create();
             else
-                return default(T);
+                return new T();
         }
 
         public static void Delete(T data)
