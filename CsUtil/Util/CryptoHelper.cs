@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
 using System.Security.Cryptography;
-using System.IO;
 
 public class CryptoHelper
 {
@@ -62,10 +60,8 @@ public class CryptoHelper
         byte[] byteData = Encoding.UTF8.GetBytes(text);
         byte[] byteKey = Encoding.UTF8.GetBytes(key);
         HMACSHA1 hmac = new HMACSHA1(byteKey);
-        CryptoStream cs = new CryptoStream(Stream.Null, hmac, CryptoStreamMode.Write);
-        cs.Write(byteData, 0, byteData.Length);
-        cs.Close();
-        string result = ToHexString(hmac.Hash);
+        byte[] hash = hmac.ComputeHash(byteData);
+        string result = ToHexString(hash);
         return result;
     }
 }
