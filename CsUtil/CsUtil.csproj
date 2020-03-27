@@ -64,6 +64,7 @@
     <Compile Include="Util\Md5Util.cs" />
     <Compile Include="Util\Singleton.cs" />
     <Compile Include="Util\Utility.cs" />
+    <Compile Include="Xml\XmlDataWriter.cs" />
     <Compile Include="Xml\XmlHelper.cs" />
     <Compile Include="Xml\XmlUtil.cs" />
   </ItemGroup>
