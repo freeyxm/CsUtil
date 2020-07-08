@@ -2,18 +2,17 @@
 
 namespace CsUtil.Util
 {
-    public class Singleton<T> where T : Singleton<T>
+    public class Singleton<T> where T : Singleton<T>, new()
     {
-        protected static T m_instance;
+        public static T Instance { get { return Nested.instance; } }
 
-        public static T Instance
+        private class Nested
         {
-            get { return m_instance; }
-        }
+            static Nested()
+            {
+            }
 
-        public Singleton()
-        {
-            m_instance = this as T;
+            internal static readonly T instance = new T();
         }
     }
 }

@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Xml;
-using CsUtil.Util;
 
 namespace CsUtil.Xml
 {
@@ -10,21 +8,41 @@ namespace CsUtil.Xml
         public static XmlAttribute GetAttr(XmlNode node, string attrName, bool optional = false)
         {
             XmlAttribute attr = node.Attributes[attrName];
+#if USE_LOGWRAPPER
             if (attr == null && !optional)
             {
-                Logger.Error(string.Format("{0} don't contain an attr named {1}.", GetNodePath(node), attrName));
+                LogWrapper.LogError(GetNodePath(node), " don't contain an attr named ", attrName);
             }
+#endif
             return attr;
         }
 
         public static XmlNode GetChild(XmlNode node, string childName, bool optional = false)
         {
             XmlNode childNode = node[childName];
+#if USE_LOGWRAPPER
             if (childNode == null && !optional)
             {
-                Logger.Error(string.Format("{0} don't contain an node named {1}.", GetNodePath(node), childName));
+                LogWrapper.LogError(GetNodePath(node), " don't contain an node named ", childName);
             }
+#endif
             return childNode;
+        }
+
+        public static XmlNodeList GetChildNodeList(XmlNode node, string childName, string nodeName, bool optional = false)
+        {
+            XmlNode childNode = node[childName];
+            if (childNode != null)
+            {
+                return childNode.SelectNodes(nodeName);
+            }
+#if USE_LOGWRAPPER
+            else if (!optional)
+            {
+                LogWrapper.LogError(GetNodePath(node), " don't contain an node named ", childName);
+            }
+#endif
+            return null;
         }
 
         public static string GetNodePath(XmlNode node)
@@ -35,201 +53,287 @@ namespace CsUtil.Xml
                 return GetNodePath(node.ParentNode) + "/" + node.Name;
         }
 
-        #region Parse return status
-        public static bool ParseInt(XmlNode node, out int value)
+        #region Parse Node
+        public static int ParseInt(XmlNode node, int default_value = 0)
         {
+            int value;
             if (!int.TryParse(node.InnerText, out value))
             {
-                Logger.Error(string.Format("{0} isn't an int.", GetNodePath(node)));
-                return false;
+#if USE_LOGWRAPPER
+                LogWrapper.LogError(GetNodePath(node), " isn't an int.");
+#endif
+                return default_value;
             }
-            return true;
+            return value;
         }
 
-        public static bool ParseFloat(XmlNode node, out float value)
+        public static long ParseLong(XmlNode node, long default_value = 0)
         {
+            long value;
+            if (!long.TryParse(node.InnerText, out value))
+            {
+#if USE_LOGWRAPPER
+                LogWrapper.LogError(GetNodePath(node), " isn't a long.");
+#endif
+                return default_value;
+            }
+            return value;
+        }
+
+        public static float ParseFloat(XmlNode node, float default_value = 0)
+        {
+            float value;
             if (!float.TryParse(node.InnerText, out value))
             {
-                Logger.Error(string.Format("{0} isn't a float.", GetNodePath(node)));
-                return false;
+#if USE_LOGWRAPPER
+                LogWrapper.LogError(GetNodePath(node), " isn't a float.");
+#endif
+                return default_value;
             }
-            return true;
+            return value;
         }
 
-        public static bool ParseInt(XmlAttribute attr, out int value)
+        public static bool ParseBool(XmlNode node, bool default_value = false)
         {
-            if (!int.TryParse(attr.InnerText, out value))
+            bool value = false;
+            if (!bool.TryParse(node.InnerText, out value))
             {
-                Logger.Error(string.Format("{0}.{1} isn't an int.", GetNodePath(attr.ParentNode), attr.Name));
-                return false;
+#if USE_LOGWRAPPER
+                LogWrapper.LogError(GetNodePath(node), " isn't a bool.");
+#endif
+                return default_value;
             }
-            return true;
-        }
-
-        public static bool ParseFloat(XmlAttribute attr, out float value)
-        {
-            if (!float.TryParse(attr.InnerText, out value))
-            {
-                Logger.Error(string.Format("{0}.{1} isn't a float.", GetNodePath(attr.ParentNode), attr.Name));
-                return false;
-            }
-            return true;
-        }
-
-        public static bool ParseAttrInt(XmlNode node, string attrName, out int value, bool optional = false)
-        {
-            XmlAttribute attr = GetAttr(node, attrName, optional);
-            if (attr == null)
-            {
-                value = 0;
-                return false;
-            }
-            if (!int.TryParse(attr.InnerText, out value))
-            {
-                Logger.Error(string.Format("{0}.{1} isn't an int.", GetNodePath(node), attrName));
-                return false;
-            }
-            return true;
-        }
-
-        public static bool ParseAttrFloat(XmlNode node, string attrName, out float value, bool optional = false)
-        {
-            XmlAttribute attr = GetAttr(node, attrName, optional);
-            if (attr == null)
-            {
-                value = 0;
-                return false;
-            }
-            if (!float.TryParse(attr.InnerText, out value))
-            {
-                Logger.Error(string.Format("{0}.{1} isn't a float.", GetNodePath(node), attrName));
-                return false;
-            }
-            return true;
-        }
-
-        public static bool ParseAttrString(XmlNode node, string attrName, out string value, bool optional = false)
-        {
-            XmlAttribute attr = GetAttr(node, attrName, optional);
-            if (attr == null)
-            {
-                value = null;
-                return false;
-            }
-            else
-            {
-                value = attr.InnerText;
-                return true;
-            }
-        }
-
-        public static bool ParseChildInt(XmlNode node, string childName, out int value, bool optional = false)
-        {
-            XmlNode childNode = GetChild(node, childName, optional);
-            if (childNode == null)
-            {
-                value = 0;
-                return false;
-            }
-            return ParseInt(childNode, out value);
-        }
-
-        public static bool ParseChildFloat(XmlNode node, string childName, out float value, bool optional = false)
-        {
-            XmlNode childNode = GetChild(node, childName, optional);
-            if (childNode == null)
-            {
-                value = 0;
-                return false;
-            }
-            return ParseFloat(childNode, out value);
-        }
-
-        public static bool ParseChildString(XmlNode node, string childName, out string value, bool optional = false)
-        {
-            XmlNode childNode = GetChild(node, childName, optional);
-            if (childNode == null)
-            {
-                value = null;
-                return false;
-            }
-            else
-            {
-                value = childNode.InnerText;
-                return true;
-            }
+            return value;
         }
         #endregion
 
-        #region Parse return result
-        public static int ParseInt(XmlNode node)
+        #region Parse Attr
+        public static int ParseAttrInt(XmlAttribute attr, int default_value = 0)
         {
             int value;
-            ParseInt(node, out value);
+            if (!int.TryParse(attr.InnerText, out value))
+            {
+#if USE_LOGWRAPPER
+                LogWrapper.LogError(GetNodePath(attr.OwnerElement) + "." + attr.Name, " isn't an int.");
+#endif
+                return default_value;
+            }
             return value;
         }
 
-        public static float ParseFloat(XmlNode node)
+        public static long ParseAttrLong(XmlAttribute attr, long default_value = 0)
+        {
+            long value;
+            if (!long.TryParse(attr.InnerText, out value))
+            {
+#if USE_LOGWRAPPER
+                LogWrapper.LogError(GetNodePath(attr.OwnerElement) + "." + attr.Name, " isn't a long.");
+#endif
+                return default_value;
+            }
+            return value;
+        }
+
+        public static float ParseAttrFloat(XmlAttribute attr, float default_value = 0)
         {
             float value;
-            ParseFloat(node, out value);
+            if (!float.TryParse(attr.InnerText, out value))
+            {
+#if USE_LOGWRAPPER
+                LogWrapper.LogError(GetNodePath(attr.OwnerElement) + "." + attr.Name, " isn't a float.");
+#endif
+                return default_value;
+            }
             return value;
         }
 
-        public static int ParseInt(XmlAttribute attr)
+        public static bool ParseAttrBool(XmlAttribute attr, bool default_value = false)
         {
-            int value;
-            ParseInt(attr, out value);
+            bool value;
+            if (!bool.TryParse(attr.InnerText, out value))
+            {
+#if USE_LOGWRAPPER
+                LogWrapper.LogError(GetNodePath(attr.OwnerElement) + "." + attr.Name, " isn't a bool.");
+#endif
+                return default_value;
+            }
             return value;
         }
 
-        public static float ParseFloat(XmlAttribute attr)
+        public static int ParseAttrInt(XmlNode node, string attrName, int default_value = 0)
         {
-            float value;
-            ParseFloat(attr, out value);
-            return value;
+            XmlAttribute attr = GetAttr(node, attrName, true);
+            if (attr == null)
+            {
+                return default_value;
+            }
+            return ParseAttrInt(attr, default_value);
         }
 
-        public static int ParseAttrInt(XmlNode node, string attrName, bool optional = false)
+        public static long ParseAttrLong(XmlNode node, string attrName, long default_value = 0)
         {
-            int value;
-            ParseAttrInt(node, attrName, out value, optional);
-            return value;
+            XmlAttribute attr = GetAttr(node, attrName, true);
+            if (attr == null)
+            {
+                return default_value;
+            }
+            return ParseAttrLong(attr, default_value);
         }
 
-        public static float ParseAttrFloat(XmlNode node, string attrName, bool optional = false)
+        public static float ParseAttrFloat(XmlNode node, string attrName, float default_value = 0)
         {
-            float value;
-            ParseAttrFloat(node, attrName, out value, optional);
-            return value;
+            XmlAttribute attr = GetAttr(node, attrName, true);
+            if (attr == null)
+            {
+                return default_value;
+            }
+            return ParseAttrFloat(attr, default_value);
         }
 
-        public static string ParseAttrString(XmlNode node, string attrName, bool optional = false)
+        public static bool ParseAttrBool(XmlNode node, string attrName, bool default_value = false)
         {
-            string value;
-            ParseAttrString(node, attrName, out value, optional);
-            return value;
+            XmlAttribute attr = GetAttr(node, attrName, true);
+            if (attr == null)
+            {
+                return default_value;
+            }
+            return ParseAttrBool(attr, default_value);
         }
 
-        public static int ParseChildInt(XmlNode node, string childName, bool optional = false)
+        public static string ParseAttrString(XmlNode node, string attrName, string default_value = null)
         {
-            int value;
-            ParseChildInt(node, childName, out value, optional);
-            return value;
+            XmlAttribute attr = GetAttr(node, attrName, true);
+            if (attr == null)
+            {
+                return default_value;
+            }
+            return attr.InnerText;
+        }
+        #endregion
+
+        #region Parse Child Node
+        public static int ParseChildInt(XmlNode node, string childName, int default_value = 0)
+        {
+            XmlNode childNode = GetChild(node, childName, true);
+            if (childNode == null)
+            {
+                return default_value;
+            }
+            return ParseInt(childNode, default_value);
         }
 
-        public static float ParseChildFloat(XmlNode node, string childName, bool optional = false)
+        public static long ParseChildLong(XmlNode node, string childName, long default_value = 0)
         {
-            float value;
-            ParseChildFloat(node, childName, out value, optional);
-            return value;
+            XmlNode childNode = GetChild(node, childName, true);
+            if (childNode == null)
+            {
+                return default_value;
+            }
+            return ParseLong(childNode, default_value);
         }
 
-        public static string ParseChildString(XmlNode node, string childName, bool optional = false)
+        public static float ParseChildFloat(XmlNode node, string childName, float default_value = 0)
         {
-            string value;
-            ParseChildString(node, childName, out value, optional);
-            return value;
+            XmlNode childNode = GetChild(node, childName, true);
+            if (childNode == null)
+            {
+                return default_value;
+            }
+            return ParseFloat(childNode, default_value);
+        }
+
+        public static bool ParseChildBool(XmlNode node, string childName, bool default_value = false)
+        {
+            XmlNode childNode = GetChild(node, childName, true);
+            if (childNode == null)
+            {
+                return default_value;
+            }
+            return ParseBool(childNode, default_value);
+        }
+
+        public static string ParseChildString(XmlNode node, string childName, string default_value = null)
+        {
+            XmlNode childNode = GetChild(node, childName, true);
+            if (childNode == null)
+            {
+                return default_value;
+            }
+            return childNode.InnerText;
+        }
+        #endregion
+
+        #region Try Parse
+        public static bool TryParseAttrInt(XmlNode node, string attrName, out int value, bool optional = false)
+        {
+            XmlAttribute attr = GetAttr(node, attrName, optional);
+            if (attr == null)
+            {
+                value = 0;
+                return false;
+            }
+            if (!int.TryParse(attr.InnerText, out value))
+            {
+#if USE_LOGWRAPPER
+                LogWrapper.LogError("{0}.{1} isn't an int.", GetNodePath(node), attrName);
+#endif
+                return false;
+            }
+            return true;
+        }
+
+        public static bool TryParseAttrLong(XmlNode node, string attrName, out long value, bool optional = false)
+        {
+            XmlAttribute attr = GetAttr(node, attrName, optional);
+            if (attr == null)
+            {
+                value = 0;
+                return false;
+            }
+            if (!long.TryParse(attr.InnerText, out value))
+            {
+#if USE_LOGWRAPPER
+                LogWrapper.LogError("{0}.{1} isn't a long.", GetNodePath(node), attrName);
+#endif
+                return false;
+            }
+            return true;
+        }
+
+        public static bool TryParseAttrFloat(XmlNode node, string attrName, out float value, bool optional = false)
+        {
+            XmlAttribute attr = GetAttr(node, attrName, optional);
+            if (attr == null)
+            {
+                value = 0;
+                return false;
+            }
+            if (!float.TryParse(attr.InnerText, out value))
+            {
+#if USE_LOGWRAPPER
+                LogWrapper.LogError("{0}.{1} isn't a float.", GetNodePath(node), attrName);
+#endif
+                return false;
+            }
+            return true;
+        }
+
+        public static bool TryParseAttrFloat(XmlNode node, string attrName, out bool value, bool optional = false)
+        {
+            XmlAttribute attr = GetAttr(node, attrName, optional);
+            if (attr == null)
+            {
+                value = false;
+                return false;
+            }
+            if (!bool.TryParse(attr.InnerText, out value))
+            {
+#if USE_LOGWRAPPER
+                LogWrapper.LogError("{0}.{1} isn't a bool.", GetNodePath(node), attrName);
+#endif
+                return false;
+            }
+            return true;
         }
         #endregion
     }
