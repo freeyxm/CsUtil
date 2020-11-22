@@ -49,6 +49,7 @@
   <ItemGroup>
     <Compile Include="Crypto\CrypterImpl.cs" />
     <Compile Include="Crypto\Crypter.cs" />
+    <Compile Include="Util\Md4.cs" />
     <Compile Include="Pool\DataPoolBase.cs" />
     <Compile Include="Pool\DataPool.cs" />
     <Compile Include="Pool\DataPoolFactory.cs" />
