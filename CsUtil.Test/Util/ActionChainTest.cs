@@ -1,4 +1,5 @@
 ﻿using System;
+using CsUtil.Log;
 using CsUtil.Util;
 
 namespace CsUtil.Test.Util

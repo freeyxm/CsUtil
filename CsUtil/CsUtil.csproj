@@ -49,7 +49,10 @@
   <ItemGroup>
     <Compile Include="Crypto\CrypterImpl.cs" />
     <Compile Include="Crypto\Crypter.cs" />
-    <Compile Include="Util\Md4.cs" />
+    <Compile Include="Crypto\CryptoHelper.cs" />
+    <Compile Include="Crypto\Md4.cs" />
+    <Compile Include="Crypto\Md5Util.cs" />
+    <Compile Include="Log\Logger.cs" />
     <Compile Include="Pool\DataPoolBase.cs" />
     <Compile Include="Pool\DataPool.cs" />
     <Compile Include="Pool\DataPoolFactory.cs" />
@@ -61,8 +64,6 @@
     <Compile Include="Util\BitOperation.cs" />
     <Compile Include="Util\CSharpUtil.cs" />
     <Compile Include="Util\FileUtil.cs" />
-    <Compile Include="Util\Logger.cs" />
-    <Compile Include="Util\Md5Util.cs" />
     <Compile Include="Util\Singleton.cs" />
     <Compile Include="Util\Utility.cs" />
     <Compile Include="Xml\XmlDataWriter.cs" />

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Xml.Serialization;
-using CsUtil.Util;
+using CsUtil.Log;
 
 namespace CsUtil.Xml
 {

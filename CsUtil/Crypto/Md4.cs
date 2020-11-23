@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace CsUtil.Util
+namespace CsUtil.Crypto
 {
     /// <summary>
     /// https://github.com/anka3797/md4_hashing

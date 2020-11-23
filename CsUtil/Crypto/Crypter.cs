@@ -2,7 +2,7 @@
 using System.Security.Cryptography;
 using System.IO;
 using System.Text;
-using CsUtil.Util;
+using CsUtil.Log;
 
 namespace CsUtil.Crypto
 {

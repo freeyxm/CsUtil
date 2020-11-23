@@ -1,5 +1,5 @@
 ﻿using System;
-using CsUtil.Util;
+using CsUtil.Log;
 
 namespace CsUtil.Test
 {

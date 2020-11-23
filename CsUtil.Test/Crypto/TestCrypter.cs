@@ -3,6 +3,7 @@ using System.Text;
 using System.IO;
 using CsUtil.Crypto;
 using CsUtil.Util;
+using CsUtil.Log;
 
 namespace CsUtil.Test.Crypto
 {

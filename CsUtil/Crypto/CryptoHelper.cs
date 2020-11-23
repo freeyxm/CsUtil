@@ -2,31 +2,34 @@
 using System.Text;
 using System.Security.Cryptography;
 
-public class CryptoHelper
+public static class CryptoHelper
 {
-    private static char[] m_hex_char = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
-    public static string ToHexString(byte[] data)
+    private static char[] HEX_CHAR = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+    public static string ToHexString(byte[] bytes)
     {
-        //return BitConverter.ToString(output).Replace("-", "").ToLower();
-
-        char[] output = new char[data.Length * 2];
-        for (int i = 0; i < data.Length; ++i)
+        // implation 1:
+        char[] hex = new char[bytes.Length * 2];
+        for (int i = 0; i < bytes.Length; ++i)
         {
-            output[i * 2] = m_hex_char[(data[i] >> 4)];
-            output[i * 2 + 1] = m_hex_char[(data[i] & 0xf)];
+            hex[i * 2] = HEX_CHAR[((bytes[i] >> 4) & 0x0F)];
+            hex[i * 2 + 1] = HEX_CHAR[(bytes[i] & 0x0F)];
         }
-        return new string(output);
+        return new string(hex);
 
-        //string str = new string((char)0, data.Length * 2);
+        // implation 2:
+        //return BitConverter.ToString(bytes).Replace("-", "").ToLower();
+
+        // implation 3:
+        //string str = new string((char)0, bytes.Length * 2);
         //unsafe
         //{
         //    fixed (char* p = str)
         //    {
         //        char* ps = p;
-        //        for (int i = 0; i < data.Length; ++i)
+        //        for (int i = 0; i < bytes.Length; ++i)
         //        {
-        //            *ps++ = m_hex_char[(data[i] >> 4)];
-        //            *ps++ = m_hex_char[(data[i] & 0xf)];
+        //            *ps++ = HEX_CHAR[(bytes[i] >> 4)];
+        //            *ps++ = HEX_CHAR[(bytes[i] & 0xf)];
         //        }
         //    }
         //}
@@ -57,10 +60,10 @@ public class CryptoHelper
 
     public static string ComputeHmacSha1(string text, string key)
     {
-        byte[] byteData = Encoding.UTF8.GetBytes(text);
-        byte[] byteKey = Encoding.UTF8.GetBytes(key);
-        HMACSHA1 hmac = new HMACSHA1(byteKey);
-        byte[] hash = hmac.ComputeHash(byteData);
+        byte[] dataBytes = Encoding.UTF8.GetBytes(text);
+        byte[] keyBytes = Encoding.UTF8.GetBytes(key);
+        HMACSHA1 hmac = new HMACSHA1(keyBytes);
+        byte[] hash = hmac.ComputeHash(dataBytes);
         string result = ToHexString(hash);
         return result;
     }

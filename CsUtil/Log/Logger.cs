@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CsUtil.Util
+namespace CsUtil.Log
 {
     public class Logger
     {
@@ -23,13 +23,13 @@ namespace CsUtil.Util
                 switch (level)
                 {
                     case LogLevel.Error:
-                        Debuger.LogError(msg);
+                        UnityEngine.Debug.LogError(msg);
                         break;
                     case LogLevel.Warning:
-                        Debuger.LogWarning(msg);
+                        UnityEngine.Debug.LogWarning(msg);
                         break;
                     default:
-                        Debuger.Log(msg);
+                        UnityEngine.Debug.Log(msg);
                         break;
                 }
 #else
