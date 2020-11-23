@@ -53,6 +53,7 @@
     <Compile Include="Crypto\Md4.cs" />
     <Compile Include="Crypto\Md5Util.cs" />
     <Compile Include="Log\Logger.cs" />
+    <Compile Include="Log\SimpleLogFile.cs" />
     <Compile Include="Pool\DataPoolBase.cs" />
     <Compile Include="Pool\DataPool.cs" />
     <Compile Include="Pool\DataPoolFactory.cs" />
