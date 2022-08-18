@@ -11,7 +11,7 @@ namespace CsUtil.Xml
 #if USE_LOGWRAPPER
             if (attr == null && !optional)
             {
-                LogWrapper.LogError(GetNodePath(node), " don't contain an attr named ", attrName);
+                LogWrapper.LogErrorFormat("{0}{1}{2}", GetNodePath(node), " don't contain an attr named ", attrName);
             }
 #endif
             return attr;
@@ -23,7 +23,7 @@ namespace CsUtil.Xml
 #if USE_LOGWRAPPER
             if (childNode == null && !optional)
             {
-                LogWrapper.LogError(GetNodePath(node), " don't contain an node named ", childName);
+                LogWrapper.LogErrorFormat("{0}{1}{2}", GetNodePath(node), " don't contain an node named ", childName);
             }
 #endif
             return childNode;
@@ -39,7 +39,7 @@ namespace CsUtil.Xml
 #if USE_LOGWRAPPER
             else if (!optional)
             {
-                LogWrapper.LogError(GetNodePath(node), " don't contain an node named ", childName);
+                LogWrapper.LogErrorFormat("{0}{1}{2}", GetNodePath(node), " don't contain an node named ", childName);
             }
 #endif
             return null;
@@ -54,13 +54,14 @@ namespace CsUtil.Xml
         }
 
         #region Parse Node
+
         public static int ParseInt(XmlNode node, int default_value = 0)
         {
             int value;
             if (!int.TryParse(node.InnerText, out value))
             {
 #if USE_LOGWRAPPER
-                LogWrapper.LogError(GetNodePath(node), " isn't an int.");
+                LogWrapper.LogErrorFormat("{0}{1}", GetNodePath(node), " isn't an int.");
 #endif
                 return default_value;
             }
@@ -73,7 +74,7 @@ namespace CsUtil.Xml
             if (!long.TryParse(node.InnerText, out value))
             {
 #if USE_LOGWRAPPER
-                LogWrapper.LogError(GetNodePath(node), " isn't a long.");
+                LogWrapper.LogErrorFormat("{0}{1}", GetNodePath(node), " isn't a long.");
 #endif
                 return default_value;
             }
@@ -86,7 +87,7 @@ namespace CsUtil.Xml
             if (!float.TryParse(node.InnerText, out value))
             {
 #if USE_LOGWRAPPER
-                LogWrapper.LogError(GetNodePath(node), " isn't a float.");
+                LogWrapper.LogErrorFormat("{0}{1}", GetNodePath(node), " isn't a float.");
 #endif
                 return default_value;
             }
@@ -99,22 +100,24 @@ namespace CsUtil.Xml
             if (!bool.TryParse(node.InnerText, out value))
             {
 #if USE_LOGWRAPPER
-                LogWrapper.LogError(GetNodePath(node), " isn't a bool.");
+                LogWrapper.LogErrorFormat("{0}{1}", GetNodePath(node), " isn't a bool.");
 #endif
                 return default_value;
             }
             return value;
         }
+
         #endregion
 
         #region Parse Attr
+
         public static int ParseAttrInt(XmlAttribute attr, int default_value = 0)
         {
             int value;
             if (!int.TryParse(attr.InnerText, out value))
             {
 #if USE_LOGWRAPPER
-                LogWrapper.LogError(GetNodePath(attr.OwnerElement) + "." + attr.Name, " isn't an int.");
+                LogWrapper.LogErrorFormat("{0}{1}", GetNodePath(attr.OwnerElement) + "." + attr.Name, " isn't an int.");
 #endif
                 return default_value;
             }
@@ -127,7 +130,7 @@ namespace CsUtil.Xml
             if (!long.TryParse(attr.InnerText, out value))
             {
 #if USE_LOGWRAPPER
-                LogWrapper.LogError(GetNodePath(attr.OwnerElement) + "." + attr.Name, " isn't a long.");
+                LogWrapper.LogErrorFormat("{0}{1}", GetNodePath(attr.OwnerElement) + "." + attr.Name, " isn't a long.");
 #endif
                 return default_value;
             }
@@ -140,7 +143,7 @@ namespace CsUtil.Xml
             if (!float.TryParse(attr.InnerText, out value))
             {
 #if USE_LOGWRAPPER
-                LogWrapper.LogError(GetNodePath(attr.OwnerElement) + "." + attr.Name, " isn't a float.");
+                LogWrapper.LogErrorFormat("{0}{1}", GetNodePath(attr.OwnerElement) + "." + attr.Name, " isn't a float.");
 #endif
                 return default_value;
             }
@@ -153,7 +156,7 @@ namespace CsUtil.Xml
             if (!bool.TryParse(attr.InnerText, out value))
             {
 #if USE_LOGWRAPPER
-                LogWrapper.LogError(GetNodePath(attr.OwnerElement) + "." + attr.Name, " isn't a bool.");
+                LogWrapper.LogErrorFormat("{0}{1}", GetNodePath(attr.OwnerElement) + "." + attr.Name, " isn't a bool.");
 #endif
                 return default_value;
             }
@@ -209,9 +212,11 @@ namespace CsUtil.Xml
             }
             return attr.InnerText;
         }
+
         #endregion
 
         #region Parse Child Node
+
         public static int ParseChildInt(XmlNode node, string childName, int default_value = 0)
         {
             XmlNode childNode = GetChild(node, childName, true);
@@ -261,9 +266,11 @@ namespace CsUtil.Xml
             }
             return childNode.InnerText;
         }
+
         #endregion
 
         #region Try Parse
+
         public static bool TryParseAttrInt(XmlNode node, string attrName, out int value, bool optional = false)
         {
             XmlAttribute attr = GetAttr(node, attrName, optional);
@@ -275,7 +282,7 @@ namespace CsUtil.Xml
             if (!int.TryParse(attr.InnerText, out value))
             {
 #if USE_LOGWRAPPER
-                LogWrapper.LogError("{0}.{1} isn't an int.", GetNodePath(node), attrName);
+                LogWrapper.LogErrorFormat("{0}.{1} isn't an int.", GetNodePath(node), attrName);
 #endif
                 return false;
             }
@@ -293,7 +300,7 @@ namespace CsUtil.Xml
             if (!long.TryParse(attr.InnerText, out value))
             {
 #if USE_LOGWRAPPER
-                LogWrapper.LogError("{0}.{1} isn't a long.", GetNodePath(node), attrName);
+                LogWrapper.LogErrorFormat("{0}.{1} isn't a long.", GetNodePath(node), attrName);
 #endif
                 return false;
             }
@@ -311,14 +318,14 @@ namespace CsUtil.Xml
             if (!float.TryParse(attr.InnerText, out value))
             {
 #if USE_LOGWRAPPER
-                LogWrapper.LogError("{0}.{1} isn't a float.", GetNodePath(node), attrName);
+                LogWrapper.LogErrorFormat("{0}.{1} isn't a float.", GetNodePath(node), attrName);
 #endif
                 return false;
             }
             return true;
         }
 
-        public static bool TryParseAttrFloat(XmlNode node, string attrName, out bool value, bool optional = false)
+        public static bool TryParseAttrBool(XmlNode node, string attrName, out bool value, bool optional = false)
         {
             XmlAttribute attr = GetAttr(node, attrName, optional);
             if (attr == null)
@@ -329,7 +336,7 @@ namespace CsUtil.Xml
             if (!bool.TryParse(attr.InnerText, out value))
             {
 #if USE_LOGWRAPPER
-                LogWrapper.LogError("{0}.{1} isn't a bool.", GetNodePath(node), attrName);
+                LogWrapper.LogErrorFormat("{0}.{1} isn't a bool.", GetNodePath(node), attrName);
 #endif
                 return false;
             }
