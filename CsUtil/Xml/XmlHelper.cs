@@ -335,6 +335,19 @@ namespace CsUtil.Xml
             }
             return true;
         }
+
+        public static bool TryParseAttrString(XmlNode node, string attrName, out string value, bool optional = false)
+        {
+            XmlAttribute attr = GetAttr(node, attrName, optional);
+            if (attr == null)
+            {
+                value = "";
+                return false;
+            }
+            value = attr.Value;
+            return true;
+        }
+
         #endregion
     }
 }

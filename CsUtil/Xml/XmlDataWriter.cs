@@ -116,6 +116,12 @@ public class XmlDataWriter
         m_builder.Append("\"");
         return this;
     }
+    
+    public XmlDataWriter AppendIndent(int indent_count)
+    {
+        AppendString(m_indent, indent_count);
+        return this;
+    }
 
     public XmlDataWriter AppendString(string str, int count)
     {
