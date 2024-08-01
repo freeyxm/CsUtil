@@ -52,12 +52,14 @@
     <Compile Include="Crypto\CryptoHelper.cs" />
     <Compile Include="Crypto\Md4.cs" />
     <Compile Include="Crypto\Md5Util.cs" />
+    <Compile Include="Serialize\ISerializable.cs" />
     <Compile Include="Log\Logger.cs" />
     <Compile Include="Log\SimpleLogFile.cs" />
     <Compile Include="Pool\DataPoolBase.cs" />
     <Compile Include="Pool\DataPool.cs" />
     <Compile Include="Pool\DataPoolFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Serialize\SerializeUtil.cs" />
     <Compile Include="Test\ExecTimer.cs" />
     <Compile Include="Test\TestBase.cs" />
     <Compile Include="Test\TestUtility.cs" />
